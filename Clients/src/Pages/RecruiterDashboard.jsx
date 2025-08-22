@@ -1,4 +1,6 @@
 import React from 'react'
+import { Outlet } from 'react-router-dom'
+import RecruiterSidebar from '../Components/RecruiterSidebar'
 
 function RecruiterDashboard() {
   return (

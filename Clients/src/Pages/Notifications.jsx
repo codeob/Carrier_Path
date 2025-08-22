@@ -1,0 +1,204 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+const Notifications = () => {
+  const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setIsLoading(true);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          console.log('No token found, redirecting to signup');
+          navigate('/user/signup');
+          return;
+        }
+
+        const response = await axios.get('http://localhost:5040/api/messages', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        console.log('Fetched notifications:', response.data);
+        setNotifications(response.data);
+      } catch (error) {
+        const errorMsg = error.response?.data?.message || error.message;
+        console.error('Error fetching notifications:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: errorMsg,
+        });
+        setError(errorMsg || 'Failed to load notifications.');
+        if (error.response?.status === 401) {
+          navigate('/user/signup');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, [navigate]);
+
+  const handleMarkAsRead = async (messageId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `http://localhost:5040/api/messages/${messageId}/read`,
+        {},
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      console.log('Marked notification as read:', response.data);
+      setNotifications(notifications.map(msg => (msg._id === messageId ? response.data : msg)));
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || error.message;
+      console.error('Error marking notification as read:', {
+        status: error.response?.status,
+        data: error.response?.data,
+        message: errorMsg,
+      });
+      setError(errorMsg || 'Failed to mark notification as read.');
+    }
+  };
+
+  const handleDeleteNotification = async (messageId) => {
+    if (window.confirm('Are you sure you want to delete this notification?')) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`http://localhost:5040/api/messages/${messageId}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        console.log('Deleted notification:', messageId);
+        setNotifications(notifications.filter(msg => msg._id !== messageId));
+      } catch (error) {
+        const errorMsg = error.response?.data?.message || error.message;
+        console.error('Error deleting notification:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: errorMsg,
+        });
+        setError(errorMsg || 'Failed to delete notification.');
+      }
+    }
+  };
+
+  const handleClearAllNotifications = async () => {
+    if (window.confirm('Are you sure you want to clear all notifications?')) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.delete('http://localhost:5040/api/messages/clear-all', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        console.log('Cleared all notifications');
+        setNotifications([]);
+      } catch (error) {
+        const errorMsg = error.response?.data?.message || error.message;
+        console.error('Error clearing all notifications:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: errorMsg,
+        });
+        setError(errorMsg || 'Failed to clear all notifications.');
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Notifications</h1>
+              <p className="text-gray-600">Stay updated on new job postings and application statuses</p>
+            </div>
+            {notifications.length > 0 && (
+              <button
+                onClick={handleClearAllNotifications}
+                className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
+              >
+                🗑️ Clear All
+              </button>
+            )}
+          </div>
+        </div>
+
+        {isLoading && (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2">
+              <span className="text-red-400">⚠️</span>
+              <p className="text-red-700">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {!isLoading && notifications.length === 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
+            <div className="w-24 h-24 mx-auto mb-4 text-gray-300">
+              <svg fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-1.1-.9-2-2-2s-2 .9-2 2v.68C6.63 5.36 5 7.92 5 11v5l-2 2v1h18v-1l-2-2z"/>
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No notifications</h3>
+            <p className="text-gray-600 mb-4">You have no new notifications at this time.</p>
+          </div>
+        )}
+
+        {!isLoading && notifications.length > 0 && (
+          <div className="space-y-6">
+            {notifications.map((notification) => (
+              <div
+                key={notification._id}
+                className={`bg-white rounded-lg shadow-sm border ${notification.read ? 'border-gray-200' : 'border-indigo-200 bg-indigo-50'} p-4 sm:p-6`}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex-1">
+                    <p className="text-gray-900 font-medium">{notification.content}</p>
+                    {notification.job && (
+                      <p className="text-gray-600 text-sm">
+                        Job: {notification.job.title}
+                      </p>
+                    )}
+                    <p className="text-gray-600 text-sm">
+                      From: {notification.senderModel === 'System' ? 'System' : notification.sender?.name || 'Unknown'}
+                    </p>
+                    <p className="text-gray-500 text-sm">
+                      {new Date(notification.sentAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-2 mt-4 sm:mt-0">
+                    {!notification.read && (
+                      <button
+                        onClick={() => handleMarkAsRead(notification._id)}
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200"
+                      >
+                        Mark as Read
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDeleteNotification(notification._id)}
+                      className="bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg transition duration-200"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Notifications;

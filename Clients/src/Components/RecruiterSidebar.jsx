@@ -34,14 +34,14 @@ const RecruiterSidebar = () => {
       }
 
       // Fetch unread application count
-      const applicationResponse = await axios.get('https://job-finder-2-g6nt.onrender.com/api/applications/unread-count', {
+      const applicationResponse = await axios.get('http://localhost:5040/api/applications', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       console.log('Unread application count response:', applicationResponse.data);
       setUnreadApplicationCount(applicationResponse.data.count || 0);
 
       // Fetch unread message count
-      const messageResponse = await axios.get('https://job-finder-2-g6nt.onrender.com/api/messages/unread-count', {
+      const messageResponse = await axios.get('http://localhost:5040/api/messages', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       console.log('Unread message count response:', messageResponse.data);
@@ -61,7 +61,7 @@ const RecruiterSidebar = () => {
           return;
         }
 
-        const response = await axios.get('https://localhost:5040/api/recruiters/profile', {
+        const response = await axios.get('http://localhost:5040/api/recruiter/profile', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         console.log('Profile response:', response.data);
@@ -86,7 +86,7 @@ const RecruiterSidebar = () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await axios.post(' http://localhost:5040/api/recruiters/logout', {}, {
+        await axios.post('http://localhost:5040/api/recruiter/logout', {}, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         console.log('Logout successful');
@@ -125,7 +125,7 @@ const RecruiterSidebar = () => {
         return;
       }
 
-      const response = await axios.post('https://job-finder-2-g6nt.onrender.com/api/applications/mark-read', {}, {
+      const response = await axios.post('http://localhost:5040/api/applications/mark-as-read', {}, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       console.log('Mark applications as read response:', response.data);
