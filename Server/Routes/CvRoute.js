@@ -10,7 +10,6 @@ const { uploadCV, getCVs } = require('../Controllers/CvController');
 const multer = require('multer');
 // Import path for file handling
 const path = require('path');
-
 // Set upload directory
 const uploadDir = path.join(__dirname, '../Uploads');
 // Configure multer storage
@@ -25,7 +24,7 @@ const storage = multer.diskStorage({
   }
 });
 // Create multer upload instance
-const upload = multer({ 
+const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
     if (file.mimetype === 'application/pdf') {
@@ -36,11 +35,9 @@ const upload = multer({
   },
   limits: { fileSize: 5 * 1024 * 1024 } // Limit file size to 5MB
 });
-
 // Protected route to upload a CV, restricted to job seekers
 router.post('/', authMiddleware(['user']), upload.single('cv'), uploadCV);
 // Protected route to get CVs, restricted to job seekers
 router.get('/', authMiddleware(['user']), getCVs);
-
 // Export the router
 module.exports = router;

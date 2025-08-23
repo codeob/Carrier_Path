@@ -1,25 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  FaBars, 
-  FaTimes, 
-  FaTachometerAlt, 
-  FaFileAlt, 
-  FaBell, 
-  FaCog, 
+import {
+  FaBars,
+  FaTimes,
+  FaTachometerAlt,
+  FaFileAlt,
+  FaBell,
+  FaCog,
   FaSignOutAlt,
   FaBriefcase
 } from 'react-icons/fa';
 import axios from 'axios';
-
-const  JobSeekerNavbar = () => {
+const JobSeekerNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [userProfile, setUserProfile] = useState({ name: '', email: '' });
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
-
   const handleResize = useCallback(() => {
     const mobile = window.innerWidth < 768;
     setIsMobile(mobile);
@@ -27,12 +25,10 @@ const  JobSeekerNavbar = () => {
       setIsMobileMenuOpen(false);
     }
   }, []);
-
   useEffect(() => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [handleResize]);
-
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -41,12 +37,10 @@ const  JobSeekerNavbar = () => {
           navigate('/user/signup');
           return;
         }
-
         const response = await axios.get('http://localhost:5040/api/jobseeker/profile', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
-
-        setUserProfile(response.data);
+        setUserProfile(response.data.jobSeeker);
       } catch (error) {
         console.error('Error fetching profile:', error);
         const userName = localStorage.getItem('userName');
@@ -55,30 +49,24 @@ const  JobSeekerNavbar = () => {
         }
       }
     };
-
     const fetchUnreadNotificationCount = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
-
         const response = await axios.get('http://localhost:5040/api/messages/unread-count', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
-
         setUnreadNotificationCount(response.data.count || 0);
       } catch (error) {
         console.error('Error fetching unread notification count:', error);
       }
     };
-
     fetchProfile();
     fetchUnreadNotificationCount();
   }, [navigate]);
-
   const handleLogout = useCallback(async () => {
     const confirmLogout = window.confirm('Are you sure you want to logout?');
     if (!confirmLogout) return;
-
     try {
       const token = localStorage.getItem('token');
       if (token) {
@@ -89,32 +77,27 @@ const  JobSeekerNavbar = () => {
     } catch (error) {
       console.error('Logout error:', error);
     }
-    
+   
     localStorage.removeItem('token');
     localStorage.removeItem('userName');
     localStorage.removeItem('role');
     localStorage.removeItem('userProfile');
-    
+   
     navigate('/user/signup');
   }, [navigate]);
-
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
-
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
-
   const isActive = (path) => location.pathname === path;
-
   const menuItems = [
     { path: '/jobseeker/dashboard/availableJobs', label: 'Available Jobs', icon: FaTachometerAlt },
     { path: '/jobseeker/dashboard/cvRater', label: 'AI CV Rater', icon: FaFileAlt },
     { path: '/jobseeker/dashboard/notifications', label: 'Notifications', icon: FaBell, badge: unreadNotificationCount },
     { path: '/settings', label: 'Settings', icon: FaCog },
   ];
-
   const getInitials = (name) => {
     if (name) {
       const nameParts = name.split(' ');
@@ -125,7 +108,6 @@ const  JobSeekerNavbar = () => {
     }
     return 'U';
   };
-
   const getFullName = (name) => {
     if (name) {
       return name;
@@ -136,7 +118,6 @@ const  JobSeekerNavbar = () => {
     }
     return 'User';
   };
-
   return (
     <>
       <nav className="fixed top-0 left-0 w-full bg-white shadow-md z-50 border-b border-gray-200">
@@ -153,7 +134,6 @@ const  JobSeekerNavbar = () => {
                 </div>
               </div>
             </div>
-
             <div className="hidden md:flex items-center space-x-4">
               {menuItems.map((item) => {
                 const Icon = item.icon;
@@ -192,7 +172,6 @@ const  JobSeekerNavbar = () => {
                 </button>
               </div>
             </div>
-
             <div className="md:hidden">
               <button
                 onClick={toggleMobileMenu}
@@ -203,7 +182,6 @@ const  JobSeekerNavbar = () => {
             </div>
           </div>
         </div>
-
         {isMobile && isMobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-gray-200">
             <div className="px-4 py-6 space-y-2">
@@ -254,5 +232,4 @@ const  JobSeekerNavbar = () => {
     </>
   );
 };
-
 export default JobSeekerNavbar;

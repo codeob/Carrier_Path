@@ -2,7 +2,6 @@
 const CV = require('../Models/CvModel');
 const fs = require('fs').promises;
 const path = require('path');
-
 // Controller to upload a CV
 exports.uploadCV = async (req, res) => {
   try {
@@ -10,13 +9,11 @@ exports.uploadCV = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({ message: 'CV file is required' });
     }
-
     // Create a new CV instance
     const cv = new CV({
       user: req.user.id, // Use job seeker ID from auth middleware
       filePath: req.file.path, // Store file path from upload middleware
     });
-
     // Save the CV to the database
     await cv.save();
     // Send success response
@@ -36,7 +33,6 @@ exports.uploadCV = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 // Controller to get CVs for a job seeker
 exports.getCVs = async (req, res) => {
   try {

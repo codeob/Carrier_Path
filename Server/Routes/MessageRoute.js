@@ -12,7 +12,6 @@ const {
   clearAllMessages,
   getUnreadMessageCount,
 } = require('../Controllers/MessageController');
-
 // Protected route to get messages, restricted to recruiters and job seekers
 router.get('/', authMiddleware(['user', 'recruiter']), getMessages);
 // Protected route to mark a message as read, restricted to recruiters and job seekers
@@ -23,6 +22,5 @@ router.delete('/:id', authMiddleware(['user', 'recruiter']), deleteMessage);
 router.delete('/clear-all', authMiddleware(['user', 'recruiter']), clearAllMessages);
 // Protected route to get unread message count, restricted to recruiters and job seekers
 router.get('/unread-count', authMiddleware(['user', 'recruiter']), getUnreadMessageCount);
-
 // Export the router
 module.exports = router;

@@ -1,6 +1,5 @@
 // Import mongoose for MongoDB interactions
 const mongoose = require('mongoose');
-
 // Define the schema for the CV collection
 const cvSchema = new mongoose.Schema(
   {
@@ -19,6 +18,5 @@ const cvSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
 // Create and export the CV model
 module.exports = mongoose.models.CV || mongoose.model('CV', cvSchema);

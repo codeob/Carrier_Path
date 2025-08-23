@@ -1,146 +1,302 @@
-// Import required models and middleware
 const Job = require('../Models/JobModel');
-const asyncHandler = require('express-async-handler');
+const Application = require('../Models/ApplicationModel');
+const path = require('path');
+const fs = require('fs');
 
-// Controller to create a new job
-const createJob = asyncHandler(async (req, res) => {
-  // Extract fields from request body
-  const { title, description, yearsOfExperience, tools, requirements, location, jobType, employmentType, salary, status } = req.body;
-
-  // Create a new job instance
-  const job = new Job({
-    title,
-    description,
-    yearsOfExperience,
-    tools: tools || [],
-    requirements: requirements || [],
-    location,
-    jobType,
-    employmentType,
-    salary: salary || {},
-    status: status || 'draft',
-    createdBy: req.recruiter.recruiterId, // Use recruiter ID from auth middleware
-  });
-
-  // Save the job to the database
-  const createdJob = await job.save();
-  // Send success response
-  res.status(201).json(createdJob);
-});
-
-// Controller to update a job
-const updateJob = asyncHandler(async (req, res) => {
-  // Get job ID from params
-  const { id } = req.params;
-  // Find the job by ID
-  const job = await Job.findById(id);
-
-  if (!job) {
-    res.status(404);
-    throw new Error('Job not found');
+// Helpers to robustly parse incoming fields (string JSON, comma-separated, or already parsed)
+function parseArrayField(input, fallback) {
+  if (input === undefined || input === null || input === '') return fallback;
+  if (Array.isArray(input)) return input;
+  if (typeof input === 'string') {
+    const trimmed = input.trim();
+    // Try JSON array first
+    if (trimmed.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return Array.isArray(parsed) ? parsed : fallback;
+      } catch (_) {
+        // fallthrough to comma-separated
+      }
+    }
+    // Fallback: comma-separated list
+    return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
   }
+  return fallback;
+}
 
-  // Check if the authenticated recruiter created the job
-  if (job.createdBy.toString() !== req.recruiter.recruiterId.toString()) {
-    res.status(403);
-    throw new Error('Not authorized to update this job');
+function parseObjectField(input, fallback) {
+  if (input === undefined || input === null || input === '') return fallback;
+  if (typeof input === 'object') return input;
+  if (typeof input === 'string') {
+    try {
+      return JSON.parse(input);
+    } catch (_) {
+      return fallback;
+    }
   }
+  return fallback;
+}
 
-  // Update only provided fields
-  const updatedFields = {
-    title: req.body.title ?? job.title,
-    description: req.body.description ?? job.description,
-    yearsOfExperience: req.body.yearsOfExperience ?? job.yearsOfExperience,
-    tools: req.body.tools ?? job.tools,
-    requirements: req.body.requirements ?? job.requirements,
-    location: req.body.location ?? job.location,
-    jobType: req.body.jobType ?? job.jobType,
-    employmentType: req.body.employmentType ?? job.employmentType,
-    salary: req.body.salary ?? job.salary,
-    status: req.body.status ?? job.status,
-    updatedAt: Date.now(),
-  };
+// Create a new job
+exports.createJob = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      yearsOfExperience,
+      tools,
+      requirements,
+      location,
+      jobType,
+      employmentType,
+      salary,
+      companyName,
+      status = 'draft',
+    } = req.body;
 
-  // Update and save the job
-  const updatedJob = await Job.findByIdAndUpdate(id, updatedFields, { new: true, runValidators: true });
-  // Send response with updated job
-  res.json(updatedJob);
-});
+    const jobData = {
+      title,
+      description,
+      yearsOfExperience: Number(yearsOfExperience),
+      tools: tools ? JSON.parse(tools) : [],
+      requirements: requirements ? JSON.parse(requirements) : [],
+      location: JSON.parse(location),
+      jobType,
+      employmentType,
+      salary: salary ? JSON.parse(salary) : {},
+      companyName,
+      status,
+      postedBy: req.recruiter.recruiterId,
+    };
 
-// Controller to get all jobs for a recruiter
-const getJobs = asyncHandler(async (req, res) => {
-  // Find jobs created by the authenticated recruiter
-  const jobs = await Job.find({ createdBy: req.recruiter.recruiterId });
-  // Send response with jobs
-  res.json(jobs);
-});
+    if (req.file) {
+      jobData.companyImage = `/uploads/${req.file.filename}`;
+    }
 
-// Controller to get public jobs
-const getPublicJobs = asyncHandler(async (req, res) => {
-  // Extract query parameters
-  const { page = 1, limit = 10, search, jobType, employmentType, location, minSalary, maxSalary, experience, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+    const job = new Job(jobData);
+    await job.save();
 
-  // Build query object
-  const query = { status: 'published' };
-  if (search) {
-    query.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { 'location.city': { $regex: search, $options: 'i' } },
-      { tools: { $regex: search, $options: 'i' } },
-    ];
+    res.status(201).json(job);
+  } catch (error) {
+    console.error('Error creating job:', error);
+    res.status(400).json({ message: error.message || 'Failed to create job' });
   }
-  if (jobType) query.jobType = jobType;
-  if (employmentType) query.employmentType = employmentType;
-  if (location) query['location.city'] = { $regex: location, $options: 'i' };
-  if (minSalary) query['salary.yearly'] = { $gte: Number(minSalary) };
-  if (maxSalary) query['salary.yearly'] = { ...query['salary.yearly'], $lte: Number(maxSalary) };
-  if (experience) query.yearsOfExperience = { $gte: Number(experience) };
+};
 
-  // Find jobs with pagination and sorting
-  const jobs = await Job.find(query)
-    .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
-    .skip((page - 1) * limit)
-    .limit(Number(limit));
+// Update a job
+exports.updateJob = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      title,
+      description,
+      yearsOfExperience,
+      tools,
+      requirements,
+      location,
+      jobType,
+      employmentType,
+      salary,
+      companyName,
+      status,
+    } = req.body;
 
-  // Count total matching jobs
-  const total = await Job.countDocuments(query);
-  // Send response with jobs and pagination info
-  res.json({
-    jobs,
-    totalPages: Math.ceil(total / limit),
-    currentPage: Number(page),
-  });
-});
+    const job = await Job.findOne({ _id: id, postedBy: req.recruiter.recruiterId });
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found or unauthorized' });
+    }
 
-// Controller to delete a job
-const deleteJob = asyncHandler(async (req, res) => {
-  // Get job ID from params
-  const { id } = req.params;
-  // Find the job by ID
-  const job = await Job.findById(id);
+    const jobData = {
+      title,
+      description,
+      yearsOfExperience: Number(yearsOfExperience ?? job.yearsOfExperience),
+      tools: parseArrayField(tools, job.tools),
+      requirements: parseArrayField(requirements, job.requirements),
+      location: parseObjectField(location, job.location),
+      jobType: jobType ?? job.jobType,
+      employmentType: employmentType ?? job.employmentType,
+      salary: parseObjectField(salary, job.salary),
+      companyName: companyName ?? job.companyName,
+      status: status ?? job.status,
+    };
 
-  if (!job) {
-    res.status(404);
-    throw new Error('Job not found');
+    if (req.file) {
+      if (job.companyImage) {
+        const oldImagePath = path.join(__dirname, '..', 'Uploads', path.basename(job.companyImage));
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
+      jobData.companyImage = `/uploads/${req.file.filename}`;
+    } else {
+      jobData.companyImage = job.companyImage;
+    }
+
+    Object.assign(job, jobData);
+    await job.save();
+
+    res.json(job);
+  } catch (error) {
+    console.error('Error updating job:', error);
+    res.status(400).json({ message: error.message || 'Failed to update job' });
   }
+};
 
-  // Check if the authenticated recruiter created the job
-  if (job.createdBy.toString() !== req.recruiter.recruiterId.toString()) {
-    res.status(403);
-    throw new Error('Not authorized to delete this job');
+// Delete a job
+exports.deleteJob = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const job = await Job.findOne({ _id: id, postedBy: req.recruiter.recruiterId });
+    if (!job) {
+      return res.status(404).json({ message: 'Job not found or unauthorized' });
+    }
+
+    if (job.companyImage) {
+      const imagePath = path.join(__dirname, '..', 'Uploads', path.basename(job.companyImage));
+      if (fs.existsSync(imagePath)) {
+        fs.unlinkSync(imagePath);
+      }
+    }
+
+    await Job.deleteOne({ _id: id });
+    res.json({ message: 'Job deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting job:', error);
+    res.status(400).json({ message: error.message || 'Failed to delete job' });
   }
+};
 
-  // Delete the job
-  await Job.findByIdAndDelete(id);
-  // Send success response
-  res.json({ message: 'Job deleted successfully' });
-});
+// Get all jobs for recruiter
+exports.getJobs = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 9,
+      search,
+      jobType,
+      employmentType,
+      location,
+      minSalary,
+      maxSalary,
+      experience,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
 
-// Export controller functions
-module.exports = {
-  createJob,
-  updateJob,
-  getJobs,
-  getPublicJobs,
-  deleteJob,
+    const query = { postedBy: req.recruiter.recruiterId };
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { companyName: { $regex: search, $options: 'i' } },
+        { 'location.city': { $regex: search, $options: 'i' } },
+        { tools: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    if (jobType) query.jobType = jobType;
+    if (employmentType) query.employmentType = employmentType;
+    if (location) query['location.city'] = { $regex: location, $options: 'i' };
+    if (minSalary) query['salary.yearly'] = { $gte: Number(minSalary) };
+    if (maxSalary) query['salary.yearly'] = { ...query['salary.yearly'], $lte: Number(maxSalary) };
+    if (experience) query.yearsOfExperience = { $gte: Number(experience) };
+
+    const jobs = await Job.find(query)
+      .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const totalJobs = await Job.countDocuments(query);
+    const totalPages = Math.ceil(totalJobs / limit);
+
+    res.json({ jobs, totalPages });
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    res.status(400).json({ message: error.message || 'Failed to fetch jobs' });
+  }
+};
+
+// Get public jobs for job seekers
+exports.getPublicJobs = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 9,
+      search,
+      jobType,
+      employmentType,
+      location,
+      minSalary,
+      maxSalary,
+      experience,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = req.query;
+
+    const query = { status: 'published' };
+
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { companyName: { $regex: search, $options: 'i' } },
+        { 'location.city': { $regex: search, $options: 'i' } },
+        { tools: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    if (jobType) query.jobType = jobType;
+    if (employmentType) query.employmentType = employmentType;
+    if (location) query['location.city'] = { $regex: location, $options: 'i' };
+    if (minSalary) query['salary.yearly'] = { $gte: Number(minSalary) };
+    if (maxSalary) query['salary.yearly'] = { ...query['salary.yearly'], $lte: Number(maxSalary) };
+    if (experience) query.yearsOfExperience = { $gte: Number(experience) };
+
+    const jobs = await Job.find(query)
+      .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const totalJobs = await Job.countDocuments(query);
+    const totalPages = Math.ceil(totalJobs / limit);
+
+    res.json({ jobs, totalPages });
+  } catch (error) {
+    console.error('Error fetching public jobs:', error);
+    res.status(400).json({ message: error.message || 'Failed to fetch public jobs' });
+  }
+};
+
+// Apply to a job
+exports.applyJob = async (req, res) => {
+  try {
+    const { jobId, fullName, email, portfolioLink, githubLink, message } = req.body;
+
+    const job = await Job.findById(jobId);
+    if (!job || job.status !== 'published') {
+      return res.status(404).json({ message: 'Job not found or not available for applications' });
+    }
+
+    const applicationData = {
+      jobId,
+      userId: req.user.id,
+      fullName,
+      email,
+      portfolioLink,
+      githubLink,
+      message,
+    };
+
+    if (req.file) {
+      applicationData.resume = `/uploads/${req.file.filename}`;
+    }
+
+    const application = new Application(applicationData);
+    await application.save();
+
+    res.status(201).json(application);
+  } catch (error) {
+    console.error('Error applying to job:', error);
+    res.status(400).json({ message: error.message || 'Failed to apply to job' });
+  }
 };

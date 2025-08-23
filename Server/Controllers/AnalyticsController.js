@@ -1,75 +1,50 @@
-// Import required models
-const Job = require('../Models/JobModel');
 const Application = require('../Models/ApplicationModel');
+const Job = require('../Models/JobModel');
 
-// Controller to get analytics for a recruiter
-exports.getAnalytics = async (req, res) => {
+// GET /api/analytics
+// Returns job statistics and application statistics for the authenticated recruiter
+const getAnalytics = async (req, res) => {
   try {
-    // Get recruiter ID from auth middleware
-    const recruiterId = req.recruiter.recruiterId;
+    // Identify recruiter (authMiddleware(['recruiter']) should ensure this exists)
+    const recruiterId = req.recruiter?.recruiterId || req.user?.id;
+    if (!recruiterId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
 
-    // Count total jobs created by the recruiter
-    const totalJobs = await Job.countDocuments({ createdBy: recruiterId });
-    // Count published jobs created by the recruiter
-    const publishedJobs = await Job.countDocuments({ createdBy: recruiterId, status: 'published' });
-    // Count draft jobs created by the recruiter
-    const draftJobs = await Job.countDocuments({ createdBy: recruiterId, status: 'draft' });
-    // Find applications for jobs created by the recruiter
-    const applications = await Application.find({ 'jobId': { $in: await Job.find({ createdBy: recruiterId }).distinct('_id') } })
-      .populate('jobId', 'title')
-      .populate('userId', 'name skills');
+    // Fetch jobs posted by this recruiter
+    const jobs = await Job.find({ postedBy: recruiterId }).select('_id status');
+    const jobIds = jobs.map((j) => j._id);
 
-    // Calculate application status statistics
-    const applicationStats = {
-      total: applications.length,
-      pending: applications.filter(app => app.status === 'pending').length,
-      accepted: applications.filter(app => app.status === 'accepted').length,
-      rejected: applications.filter(app => app.status === 'rejected').length,
-    };
+    // Job stats
+    const totalJobs = jobs.length;
+    const publishedJobs = jobs.filter((j) => j.status === 'published').length;
+    const draftJobs = jobs.filter((j) => j.status === 'draft').length;
 
-    // Aggregate application counts per job
-    const jobApplicationCounts = await Application.aggregate([
-      { $match: { 'jobId': { $in: await Job.find({ createdBy: recruiterId }).distinct('_id') } } },
-      {
-        $group: {
-          _id: '$jobId',
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $lookup: {
-          from: 'jobs',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'job',
-        },
-      },
-      { $unwind: '$job' },
-      {
-        $project: {
-          jobTitle: '$job.title',
-          count: 1,
-        },
-      },
-      { $sort: { count: -1 } },
-      { $limit: 5 },
+    // Application stats across those jobs
+    const [total, accepted, rejected, pending] = await Promise.all([
+      Application.countDocuments({ jobId: { $in: jobIds } }),
+      Application.countDocuments({ jobId: { $in: jobIds }, status: 'accepted' }),
+      Application.countDocuments({ jobId: { $in: jobIds }, status: 'rejected' }),
+      Application.countDocuments({ jobId: { $in: jobIds }, status: 'pending' }),
     ]);
 
-    // Send response with analytics data
-    res.json({
+    return res.json({
       jobStats: {
         totalJobs,
         publishedJobs,
         draftJobs,
       },
-      applicationStats,
-      topJobs: jobApplicationCounts,
+      applicationStats: {
+        total,
+        accepted,
+        rejected,
+        pending,
+      },
     });
   } catch (error) {
-    // Log any errors
-    console.error('Get analytics error:', error);
-    // Send error response
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error computing analytics:', error);
+    return res.status(500).json({ message: 'Failed to compute analytics' });
   }
 };
 
+module.exports = { getAnalytics };

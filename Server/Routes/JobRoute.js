@@ -1,22 +1,48 @@
-// Import express to create a router
 const express = require('express');
-// Create an instance of express Router
 const router = express.Router();
-// Import job controller functions
-const { createJob, updateJob, getJobs, getPublicJobs, deleteJob } = require('../Controllers/JobController');
-// Import authentication middleware
+const { createJob, updateJob, deleteJob, getJobs, getPublicJobs, applyJob } = require('../Controllers/JobController');
 const authMiddleware = require('../middleware/authMiddleware');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
-// Protected route to create a job, restricted to recruiters
-router.post('/', authMiddleware(['recruiter']), createJob);
-// Protected route to update a job, restricted to recruiters
-router.put('/:id', authMiddleware(['recruiter']), updateJob);
-// Protected route to get recruiter’s jobs, restricted to recruiters
-router.get('/', authMiddleware(['recruiter']), getJobs);
-// Public route to get published jobs
-router.get('/public', getPublicJobs);
-// Protected route to delete a job, restricted to recruiters
+// Configure Multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '..', 'Uploads');
+    try {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    } catch (err) {
+      return cb(err);
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|pdf/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+    if (extname && mimetype) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPEG, JPG, PNG, or PDF files are allowed'));
+    }
+  },
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
+
+// Routes
+router.post('/', authMiddleware(['recruiter']), upload.single('companyImage'), createJob);
+router.put('/:id', authMiddleware(['recruiter']), upload.single('companyImage'), updateJob);
 router.delete('/:id', authMiddleware(['recruiter']), deleteJob);
+router.get('/', authMiddleware(['recruiter']), getJobs);
+router.get('/public', getPublicJobs); // No auth for public jobs
+router.post('/applications', authMiddleware(['user']), upload.single('resume'), applyJob);
 
-// Export the router
 module.exports = router;

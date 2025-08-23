@@ -2,8 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { debounce } from 'lodash';
-
-// Optimized: Added debounced search to reduce API calls
 const JobList = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
@@ -11,15 +9,12 @@ const JobList = () => {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-
-  // Optimized: Debounced search handler
   const debouncedSearch = useCallback(
     debounce((value) => {
       setSearchTerm(value);
     }, 300),
     []
   );
-
   useEffect(() => {
     const fetchJobs = async () => {
       const token = localStorage.getItem('token');
@@ -27,15 +22,18 @@ const JobList = () => {
         navigate('/recruiter/signup');
         return;
       }
-
       try {
         setIsLoading(true);
+        setError('');
+        const params = { 
+          search: searchTerm, 
+          status: filter === 'all' ? undefined : filter 
+        };
         const response = await axios.get('http://localhost:5040/api/jobs', {
           headers: { 'Authorization': `Bearer ${token}` },
-          params: { search: searchTerm, status: filter === 'all' ? undefined : filter },
+          params,
         });
-
-        setJobs(response.data);
+        setJobs(Array.isArray(response.data.jobs) ? response.data.jobs : []);
       } catch (error) {
         setError(error.response?.data?.message || 'Failed to load jobs.');
         if (error.response?.status === 401) {
@@ -45,24 +43,20 @@ const JobList = () => {
         setIsLoading(false);
       }
     };
-
     fetchJobs();
   }, [navigate, searchTerm, filter]);
-
   const handleDelete = async (jobId) => {
-    if (window.confirm('Are you sure you want to delete this job?')) {
-      try {
-        const token = localStorage.getItem('token');
-        await axios.delete(`http://localhost:5040/api/jobs/${jobId}`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-        setJobs(jobs.filter(job => job._id !== jobId));
-      } catch (error) {
-        setError(error.response?.data?.message || 'Failed to delete job.');
-      }
+    if (!window.confirm('Are you sure you want to delete this job?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5040/api/jobs/${jobId}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      setJobs(jobs.filter(job => job._id !== jobId));
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to delete job.');
     }
   };
-
   const handleSubmitJob = async (jobId, status) => {
     try {
       const token = localStorage.getItem('token');
@@ -71,7 +65,6 @@ const JobList = () => {
         setError('Job not found.');
         return;
       }
-
       const updatedJobData = {
         ...job,
         status,
@@ -84,8 +77,9 @@ const JobList = () => {
         jobType: job.jobType || 'remote',
         employmentType: job.employmentType || 'full-time',
         salary: job.salary || {},
+        companyName: job.companyName || '',
+        companyImage: job.companyImage || '',
       };
-
       const response = await axios.put(
         `http://localhost:5040/api/jobs/${jobId}`,
         updatedJobData,
@@ -101,21 +95,16 @@ const JobList = () => {
       }
     }
   };
-
   const getStatusColor = (status) => {
     switch (status) {
-      case 'published':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'draft':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'archived':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      default:
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'published': return 'bg-green-100 text-green-800 border-green-200';
+      case 'draft': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'archived': return 'bg-gray-100 text-gray-800 border-gray-200';
+      default: return 'bg-blue-100 text-blue-800 border-blue-200';
     }
   };
-
   const formatSalary = (salary) => {
+    if (!salary) return 'Not specified';
     const salaryTypes = [
       { key: 'hourly', label: '/hour' },
       { key: 'weekly', label: '/week' },
@@ -127,11 +116,9 @@ const JobList = () => {
       .map(type => `$${salary[type.key].toLocaleString()}${type.label}`);
     return availableSalaries.length > 0 ? availableSalaries.join(', ') : 'Not specified';
   };
-
   const formatField = (value) => {
     return value ? value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ') : 'N/A';
   };
-
   return (
     <div className="min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       <div className="max-w-7xl mx-auto">
@@ -152,7 +139,6 @@ const JobList = () => {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
@@ -184,13 +170,11 @@ const JobList = () => {
             </div>
           </div>
         </div>
-
         {isLoading && (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
         )}
-
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <div className="flex items-center gap-2">
@@ -199,7 +183,6 @@ const JobList = () => {
             </div>
           </div>
         )}
-
         {!isLoading && jobs.length === 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
             <div className="w-24 h-24 mx-auto mb-4 text-gray-300">
@@ -221,7 +204,6 @@ const JobList = () => {
             )}
           </div>
         )}
-
         {!isLoading && jobs.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {jobs.map((job) => (
@@ -229,6 +211,10 @@ const JobList = () => {
                 <div className="flex flex-col items-start mb-2">
                   <div className="mb-1">
                     <h2 className="text-lg font-semibold text-gray-900">{job.title}</h2>
+                    <p className="text-sm text-gray-600">{job.companyName}</p>
+                    {job.companyImage && (
+                      <img src={`http://localhost:5040${job.companyImage}`} alt={job.companyName} className="w-16 h-16 object-contain mt-2" />
+                    )}
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(job.status)}`}>
                     {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
@@ -339,5 +325,4 @@ const JobList = () => {
     </div>
   );
 };
-
 export default JobList;

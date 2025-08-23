@@ -20,12 +20,10 @@ const analyticsRoutes = require('./Routes/AnalyticsRoute');
 const mongoose = require('mongoose');
 // Import path for handling file paths
 const path = require('path');
-
 // Create express app
 const app = express();
 // Set port from environment variable or default to 5040
 const PORT = process.env.PORT || 5040;
-
 // Enable CORS for frontend (adjust origin as needed)
 app.use(cors());
 // Parse JSON bodies
@@ -36,12 +34,10 @@ app.use(bodyParser.json());
 app.use(morgan('dev'));
 // Serve static files from Uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'Uploads')));
-
 // Default route
 app.get('/', (req, res) => {
   res.send('Welcome to the Server!');
 });
-
 // Mount routes
 app.use('/api/recruiter', recruiterRoutes);
 app.use('/api/jobseeker', jobSeekerRoutes);
@@ -50,7 +46,6 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/cvs', cvRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/analytics', analyticsRoutes);
-
 // Connect to MongoDB and start server
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {

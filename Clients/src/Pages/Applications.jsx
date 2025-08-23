@@ -8,6 +8,7 @@ const Applications = () => {
   const [applications, setApplications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [buttonLoading, setButtonLoading] = useState({});
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -20,13 +21,13 @@ const Applications = () => {
         }
 
         const response = await axios.get('http://localhost:5040/api/applications', {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         setApplications(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
-        console.error('Error fetching applications:', error);
-        setError(error.response?.data?.message || 'Failed to load applications. Please try again.');
+        const errorMsg = error.response?.data?.message || 'Failed to load applications. Please try again.';
+        setError(errorMsg);
         if (error.response?.status === 401) {
           navigate('/recruiter/auth');
         }
@@ -38,34 +39,45 @@ const Applications = () => {
     fetchApplications();
   }, [navigate]);
 
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   const handleStatusChange = async (applicationId, status) => {
+    setButtonLoading((prev) => ({ ...prev, [applicationId]: status }));
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(
         `http://localhost:5040/api/applications/${applicationId}`,
         { status },
-        { headers: { 'Authorization': `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setApplications(
-        applications.map(app => (app._id === applicationId ? response.data : app))
+        applications.map((app) => (app._id === applicationId ? response.data : app))
       );
     } catch (error) {
-      console.error('Error updating application status:', error);
       setError(error.response?.data?.message || 'Failed to update application status.');
+    } finally {
+      setButtonLoading((prev) => ({ ...prev, [applicationId]: false }));
     }
   };
 
   const handleDelete = async (applicationId) => {
     if (window.confirm('Are you sure you want to delete this application?')) {
+      setButtonLoading((prev) => ({ ...prev, [applicationId]: 'delete' }));
       try {
         const token = localStorage.getItem('token');
         await axios.delete(`http://localhost:5040/api/applications/${applicationId}`, {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setApplications(applications.filter(app => app._id !== applicationId));
+        setApplications(applications.filter((app) => app._id !== applicationId));
       } catch (error) {
-        console.error('Error deleting application:', error);
         setError(error.response?.data?.message || 'Failed to delete application.');
+      } finally {
+        setButtonLoading((prev) => ({ ...prev, [applicationId]: false }));
       }
     }
   };
@@ -83,15 +95,15 @@ const Applications = () => {
   };
 
   return (
-    <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-6 bg-white">
+    <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-6 bg-gray-50">
       <div className="max-w-7xl mx-auto">
-        <div className="p-4 sm:p-6 mb-6 border border-gray-200 rounded-lg bg-white">
+        <div className="p-4 sm:p-6 mb-6 border border-gray-200 rounded-lg bg-white shadow-sm">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Applications</h1>
           <p className="text-gray-600">Manage applications for your job postings</p>
         </div>
 
         {isLoading && (
-          <div className="flex justify-center items-center py-12">
+          <div className="flex justify-center items-center py-12" aria-label="Loading applications">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
         )}
@@ -106,7 +118,7 @@ const Applications = () => {
         )}
 
         {!isLoading && applications.length === 0 && (
-          <div className="border border-gray-200 rounded-lg p-8 sm:p-12 text-center bg-white">
+          <div className="border border-gray-200 rounded-lg p-8 sm:p-12 text-center bg-white shadow-sm">
             <div className="w-24 h-24 mx-auto mb-4 text-gray-300">
               <svg fill="currentColor" viewBox="0 0 24 24">
                 <path d="M20 6h-2l-2-2H8L6 6H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
@@ -118,35 +130,52 @@ const Applications = () => {
         )}
 
         {!isLoading && applications.length > 0 && (
-          <div className="flex flex-wrap gap-6 justify-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {applications.map((app) => (
-              <div key={app._id} className="border border-gray-200 rounded-lg p-4 sm:p-6 max-w-3xl w-full sm:w-3/4 md:w-2/3 lg:w-1/2 bg-white">
+              <div
+                key={app._id}
+                className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white shadow-sm hover:shadow-md transition-shadow"
+              >
                 <div className="flex flex-col items-start mb-4">
                   <div className="mb-2">
-                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900">{app.jobId?.title || 'Unknown Job'}</h2>
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                      {app.jobId?.title || 'Unknown Job'}
+                    </h2>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(app.status)}`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(app.status)}`}
+                  >
                     {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
                   </span>
                 </div>
-                <p className="text-gray-600 mb-2">Applicant: {app.fullName}</p>
-                <p className="text-gray-600 mb-4">Email: {app.email}</p>
+                <p className="text-gray-600 mb-2">Applicant: {app.fullName || 'N/A'}</p>
+                <p className="text-gray-600 mb-4">Email: {app.email || 'N/A'}</p>
                 <div className="space-y-2 mb-4">
                   {app.jobId && (
                     <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-gray-600">
                         <span className="text-gray-400 text-sm">🏢</span>
                         <span className="text-sm font-medium">Work Arrangement: </span>
-                        <span className="text-sm">{app.jobId.jobType ? (app.jobId.jobType.charAt(0).toUpperCase() + app.jobId.jobType.slice(1).replace(/-/g, ' ')) : 'N/A'}</span>
+                        <span className="text-sm">
+                          {app.jobId.jobType
+                            ? app.jobId.jobType.charAt(0).toUpperCase() +
+                              app.jobId.jobType.slice(1).replace(/-/g, ' ')
+                            : 'N/A'}
+                        </span>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-gray-600">
                         <span className="text-gray-400 text-sm">💼</span>
                         <span className="text-sm font-medium">Employment Type: </span>
-                        <span className="text-sm">{app.jobId.employmentType ? (app.jobId.employmentType.charAt(0).toUpperCase() + app.jobId.employmentType.slice(1).replace(/-/g, ' ')) : 'N/A'}</span>
+                        <span className="text-sm">
+                          {app.jobId.employmentType
+                            ? app.jobId.employmentType.charAt(0).toUpperCase() +
+                              app.jobId.employmentType.slice(1).replace(/-/g, ' ')
+                            : 'N/A'}
+                        </span>
                       </div>
                     </div>
                   )}
-                  <div className="flex flex-wrap items-center gap-2 text-gray-600">
+                  <div className="flex items-center gap-2 text-gray-600">
                     <FaTools className="text-gray-400" />
                     <div className="flex flex-wrap gap-2">
                       {Array.isArray(app.userId?.skills) && app.userId.skills.length > 0 ? (
@@ -219,30 +248,47 @@ const Applications = () => {
                 <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
                   <button
                     onClick={() => handleStatusChange(app._id, 'accepted')}
-                    className="bg-green-50 hover:bg-green-100 text-green-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
-                    disabled={app.status === 'accepted'}
+                    className="bg-green-50 hover:bg-green-100 text-green-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                    disabled={app.status === 'accepted' || buttonLoading[app._id] === 'accepted'}
                   >
-                    ✅ Accept
+                    {buttonLoading[app._id] === 'accepted' ? (
+                      <span className="animate-spin h-5 w-5 border-2 border-t-green-700 rounded-full"></span>
+                    ) : (
+                      '✅ Accept'
+                    )}
                   </button>
                   <button
                     onClick={() => handleStatusChange(app._id, 'rejected')}
-                    className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
-                    disabled={app.status === 'rejected'}
+                    className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                    disabled={app.status === 'rejected' || buttonLoading[app._id] === 'rejected'}
                   >
-                    ❌ Reject
+                    {buttonLoading[app._id] === 'rejected' ? (
+                      <span className="animate-spin h-5 w-5 border-2 border-t-red-700 rounded-full"></span>
+                    ) : (
+                      '❌ Reject'
+                    )}
                   </button>
                   <button
                     onClick={() => handleStatusChange(app._id, 'pending')}
-                    className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
-                    disabled={app.status === 'pending'}
+                    className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                    disabled={app.status === 'pending' || buttonLoading[app._id] === 'pending'}
                   >
-                    ⏳ Pending
+                    {buttonLoading[app._id] === 'pending' ? (
+                      <span className="animate-spin h-5 w-5 border-2 border-t-yellow-700 rounded-full"></span>
+                    ) : (
+                      '⏳ Pending'
+                    )}
                   </button>
                   <button
                     onClick={() => handleDelete(app._id)}
-                    className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
+                    className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                    disabled={buttonLoading[app._id] === 'delete'}
                   >
-                    🗑️ Delete
+                    {buttonLoading[app._id] === 'delete' ? (
+                      <span className="animate-spin h-5 w-5 border-2 border-t-red-700 rounded-full"></span>
+                    ) : (
+                      '🗑️ Delete'
+                    )}
                   </button>
                 </div>
               </div>

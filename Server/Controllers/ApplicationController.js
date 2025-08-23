@@ -1,123 +1,140 @@
-// Import required models and middleware
 const Application = require('../Models/ApplicationModel');
 const Job = require('../Models/JobModel');
-const asyncHandler = require('express-async-handler');
 
-// Controller to create a new application
-const createApplication = asyncHandler(async (req, res) => {
-  // Extract fields from request body
-  const { jobId, fullName, email, message, portfolioLink, githubLink } = req.body;
+// Create a new application (Job Seeker)
+exports.createApplication = async (req, res) => {
+  try {
+    const { jobId, fullName, email, portfolioLink, githubLink, message } = req.body;
 
-  // Check if resume file is provided
-  if (!req.file) {
-    res.status(400);
-    throw new Error('Resume is required');
+    if (!jobId || !fullName || !email) {
+      return res.status(400).json({ message: 'jobId, fullName, and email are required' });
+    }
+
+    const job = await Job.findById(jobId);
+    if (!job || job.status !== 'published') {
+      return res.status(404).json({ message: 'Job not found or not available for applications' });
+    }
+
+    const existing = await Application.findOne({ jobId, userId: req.user.id });
+    if (existing) {
+      return res.status(409).json({ message: 'You have already applied to this job' });
+    }
+
+    const applicationData = {
+      jobId,
+      userId: req.user.id,
+      fullName,
+      email,
+      portfolioLink,
+      githubLink,
+      message,
+    };
+
+    if (req.file) {
+      applicationData.resume = `/uploads/${req.file.filename}`;
+    }
+
+    const application = new Application(applicationData);
+    await application.save();
+
+    const populated = await Application.findById(application._id)
+      .populate('jobId', 'title jobType employmentType companyName companyImage')
+      .populate('userId', 'skills');
+
+    res.status(201).json(populated);
+  } catch (error) {
+    console.error('Error creating application:', error);
+    res.status(400).json({ message: error.message || 'Failed to create application' });
   }
+};
 
-  // Find the job by ID
-  const job = await Job.findById(jobId);
-  if (!job) {
-    res.status(404);
-    throw new Error('Job not found');
+// Get all applications for the recruiter's jobs
+exports.getApplications = async (req, res) => {
+  try {
+    // Find jobs posted by the recruiter
+    const jobs = await Job.find({ postedBy: req.recruiter?.recruiterId || req.user?.id }).select('_id');
+    const jobIds = jobs.map(job => job._id);
+
+    // Fetch applications for those jobs
+    const applications = await Application.find({ jobId: { $in: jobIds } })
+      .populate('jobId', 'title jobType employmentType companyName companyImage')
+      .populate('userId', 'skills');
+
+    res.json(applications);
+  } catch (error) {
+    console.error('Error fetching applications:', error);
+    res.status(400).json({ message: error.message || 'Failed to fetch applications' });
   }
+};
 
-  // Check if the job is published
-  if (job.status !== 'published') {
-    res.status(400);
-    throw new Error('Cannot apply to unpublished job');
+// Update application status
+exports.updateApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    // Verify the application belongs to a job posted by the recruiter
+    const application = await Application.findById(id).populate('jobId');
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+    if (application.jobId.postedBy.toString() !== (req.recruiter?.recruiterId || req.user?.id)) {
+      return res.status(403).json({ message: 'Unauthorized to update this application' });
+    }
+
+    application.status = status;
+    await application.save();
+
+    // Re-populate to return updated data
+    const updatedApplication = await Application.findById(id)
+      .populate('jobId', 'title jobType employmentType companyName companyImage')
+      .populate('userId', 'skills');
+
+    res.json(updatedApplication);
+  } catch (error) {
+    console.error('Error updating application:', error);
+    res.status(400).json({ message: error.message || 'Failed to update application status' });
   }
+};
 
-  // Create a new application instance
-  const application = new Application({
-    jobId,
-    userId: req.user.id, // Use job seeker ID from auth middleware
-    fullName,
-    email,
-    resume: req.file.path, // Store file path from upload middleware
-    portfolioLink: portfolioLink || null,
-    githubLink: githubLink || null,
-    message: message || '',
-    status: 'pending',
-  });
+// Delete an application
+exports.deleteApplication = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  // Save the application to the database
-  const createdApplication = await application.save();
-  // Send success response
-  res.status(201).json(createdApplication);
-});
+    // Verify the application belongs to a job posted by the recruiter
+    const application = await Application.findById(id).populate('jobId');
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+    if (application.jobId.postedBy.toString() !== (req.recruiter?.recruiterId || req.user?.id)) {
+      return res.status(403).json({ message: 'Unauthorized to delete this application' });
+    }
 
-// Controller to get applications for a recruiter
-const getApplications = asyncHandler(async (req, res) => {
-  // Find jobs created by the recruiter
-  const jobs = await Job.find({ createdBy: req.recruiter.recruiterId }).select('_id');
-  const jobIds = jobs.map(job => job._id);
-  // Find applications for those jobs
-  const applications = await Application.find({ jobId: { $in: jobIds } })
-    .populate('jobId', 'title')
-    .populate('userId', 'name email skills');
-  // Send response with applications
-  res.json(applications);
-});
+    if (application.resume) {
+      const fs = require('fs');
+      const path = require('path');
+      const resumePath = path.join(__dirname, '../Uploads', path.basename(application.resume));
+      if (fs.existsSync(resumePath)) {
+        fs.unlinkSync(resumePath);
+      }
+    }
 
-// Controller to update application status
-const updateApplication = asyncHandler(async (req, res) => {
-  // Get application ID from params
-  const { id } = req.params;
-  // Get status from request body
-  const { status } = req.body;
-
-  // Find the application by ID
-  const application = await Application.findById(id);
-  if (!application) {
-    res.status(404);
-    throw new Error('Application not found');
+    await Application.deleteOne({ _id: id });
+    res.json({ message: 'Application deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting application:', error);
+    res.status(400).json({ message: error.message || 'Failed to delete application' });
   }
+};
 
-  // Find the associated job
-  const job = await Job.findById(application.jobId);
-  if (!job || job.createdBy.toString() !== req.recruiter.recruiterId.toString()) {
-    res.status(403);
-    throw new Error('Not authorized to update this application');
+// Mark applications as read (no-op if schema lacks a 'read' flag)
+exports.markApplicationsAsRead = async (req, res) => {
+  try {
+    // Basic implementation to avoid route crash; extend to update a 'read' flag if present
+    res.json({ message: 'Mark as read processed' });
+  } catch (error) {
+    console.error('Error marking applications as read:', error);
+    res.status(500).json({ message: 'Server error' });
   }
-
-  // Update application status and timestamp
-  application.status = status;
-  application.updatedAt = Date.now();
-  // Save the updated application
-  const updatedApplication = await application.save();
-  // Send response with updated application
-  res.json(updatedApplication);
-});
-
-// Controller to delete an application
-const deleteApplication = asyncHandler(async (req, res) => {
-  // Get application ID from params
-  const { id } = req.params;
-  // Find the application by ID
-  const application = await Application.findById(id);
-
-  if (!application) {
-    res.status(404);
-    throw new Error('Application not found');
-  }
-
-  // Find the associated job
-  const job = await Job.findById(application.jobId);
-  if (!job || job.createdBy.toString() !== req.recruiter.recruiterId.toString()) {
-    res.status(403);
-    throw new Error('Not authorized to delete this application');
-  }
-
-  // Delete the application
-  await Application.findByIdAndDelete(id);
-  // Send success response
-  res.json({ message: 'Application deleted successfully' });
-});
-
-// Export controller functions
-module.exports = {
-  createApplication,
-  getApplications,
-  updateApplication,
-  deleteApplication,
 };

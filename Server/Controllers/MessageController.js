@@ -1,6 +1,5 @@
 // Import required models
 const Message = require('../Models/MessageModel');
-
 // Controller to get messages for a user
 exports.getMessages = async (req, res) => {
   try {
@@ -32,7 +31,6 @@ exports.getMessages = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 // Controller to mark a message as read
 exports.markMessageAsRead = async (req, res) => {
   try {
@@ -49,13 +47,11 @@ exports.markMessageAsRead = async (req, res) => {
       recipient: userId,
       recipientModel: model,
     });
-
     if (!message) {
       // Log if message not found
       console.log('Message not found or not authorized:', id);
       return res.status(404).json({ message: 'Message not found or not authorized' });
     }
-
     // Mark message as read
     message.read = true;
     // Save the updated message
@@ -75,7 +71,6 @@ exports.markMessageAsRead = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 // Controller to delete a message
 exports.deleteMessage = async (req, res) => {
   try {
@@ -92,13 +87,11 @@ exports.deleteMessage = async (req, res) => {
       recipient: userId,
       recipientModel: model,
     });
-
     if (!message) {
       // Log if message not found
       console.log('Message not found or not authorized:', id);
       return res.status(404).json({ message: 'Message not found or not authorized' });
     }
-
     // Delete the message
     await Message.deleteOne({ _id: id });
     // Log success
@@ -116,7 +109,6 @@ exports.deleteMessage = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 // Controller to clear all messages for a user
 exports.clearAllMessages = async (req, res) => {
   try {
@@ -145,7 +137,6 @@ exports.clearAllMessages = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 // Controller to get unread message count
 exports.getUnreadMessageCount = async (req, res) => {
   try {

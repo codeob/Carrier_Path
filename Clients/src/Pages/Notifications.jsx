@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { formatDistanceToNow } from 'date-fns';
 
 const Notifications = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [buttonLoading, setButtonLoading] = useState({});
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -14,24 +16,17 @@ const Notifications = () => {
         setIsLoading(true);
         const token = localStorage.getItem('token');
         if (!token) {
-          console.log('No token found, redirecting to signup');
           navigate('/user/signup');
           return;
         }
 
         const response = await axios.get('http://localhost:5040/api/messages', {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        console.log('Fetched notifications:', response.data);
-        setNotifications(response.data);
+        setNotifications(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
-        const errorMsg = error.response?.data?.message || error.message;
-        console.error('Error fetching notifications:', {
-          status: error.response?.status,
-          data: error.response?.data,
-          message: errorMsg,
-        });
-        setError(errorMsg || 'Failed to load notifications.');
+        const errorMsg = error.response?.data?.message || 'Failed to load notifications.';
+        setError(errorMsg);
         if (error.response?.status === 401) {
           navigate('/user/signup');
         }
@@ -43,65 +38,60 @@ const Notifications = () => {
     fetchNotifications();
   }, [navigate]);
 
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(''), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
   const handleMarkAsRead = async (messageId) => {
+    setButtonLoading((prev) => ({ ...prev, [messageId]: 'read' }));
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(
         `http://localhost:5040/api/messages/${messageId}/read`,
         {},
-        { headers: { 'Authorization': `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log('Marked notification as read:', response.data);
-      setNotifications(notifications.map(msg => (msg._id === messageId ? response.data : msg)));
+      setNotifications(notifications.map((msg) => (msg._id === messageId ? response.data : msg)));
     } catch (error) {
-      const errorMsg = error.response?.data?.message || error.message;
-      console.error('Error marking notification as read:', {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: errorMsg,
-      });
-      setError(errorMsg || 'Failed to mark notification as read.');
+      setError(error.response?.data?.message || 'Failed to mark notification as read.');
+    } finally {
+      setButtonLoading((prev) => ({ ...prev, [messageId]: false }));
     }
   };
 
   const handleDeleteNotification = async (messageId) => {
     if (window.confirm('Are you sure you want to delete this notification?')) {
+      setButtonLoading((prev) => ({ ...prev, [messageId]: 'delete' }));
       try {
         const token = localStorage.getItem('token');
         await axios.delete(`http://localhost:5040/api/messages/${messageId}`, {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        console.log('Deleted notification:', messageId);
-        setNotifications(notifications.filter(msg => msg._id !== messageId));
+        setNotifications(notifications.filter((msg) => msg._id !== messageId));
       } catch (error) {
-        const errorMsg = error.response?.data?.message || error.message;
-        console.error('Error deleting notification:', {
-          status: error.response?.status,
-          data: error.response?.data,
-          message: errorMsg,
-        });
-        setError(errorMsg || 'Failed to delete notification.');
+        setError(error.response?.data?.message || 'Failed to delete notification.');
+      } finally {
+        setButtonLoading((prev) => ({ ...prev, [messageId]: false }));
       }
     }
   };
 
   const handleClearAllNotifications = async () => {
     if (window.confirm('Are you sure you want to clear all notifications?')) {
+      setButtonLoading((prev) => ({ ...prev, clearAll: true }));
       try {
         const token = localStorage.getItem('token');
         await axios.delete('http://localhost:5040/api/messages/clear-all', {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        console.log('Cleared all notifications');
         setNotifications([]);
       } catch (error) {
-        const errorMsg = error.response?.data?.message || error.message;
-        console.error('Error clearing all notifications:', {
-          status: error.response?.status,
-          data: error.response?.data,
-          message: errorMsg,
-        });
-        setError(errorMsg || 'Failed to clear all notifications.');
+        setError(error.response?.data?.message || 'Failed to clear all notifications.');
+      } finally {
+        setButtonLoading((prev) => ({ ...prev, clearAll: false }));
       }
     }
   };
@@ -118,16 +108,21 @@ const Notifications = () => {
             {notifications.length > 0 && (
               <button
                 onClick={handleClearAllNotifications}
-                className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
+                className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                disabled={buttonLoading.clearAll}
               >
-                🗑️ Clear All
+                {buttonLoading.clearAll ? (
+                  <span className="animate-spin h-5 w-5 border-2 border-t-red-700 rounded-full"></span>
+                ) : (
+                  '🗑️ Clear All'
+                )}
               </button>
             )}
           </div>
         </div>
 
         {isLoading && (
-          <div className="flex justify-center items-center py-12">
+          <div className="flex justify-center items-center py-12" aria-label="Loading notifications">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
         )}
@@ -158,37 +153,49 @@ const Notifications = () => {
             {notifications.map((notification) => (
               <div
                 key={notification._id}
-                className={`bg-white rounded-lg shadow-sm border ${notification.read ? 'border-gray-200' : 'border-indigo-200 bg-indigo-50'} p-4 sm:p-6`}
+                className={`bg-white rounded-lg shadow-sm border ${
+                  notification.read ? 'border-gray-200' : 'border-indigo-200 bg-indigo-50'
+                } p-4 sm:p-6 hover:shadow-md transition-shadow`}
               >
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1">
-                    <p className="text-gray-900 font-medium">{notification.content}</p>
+                    <p className="text-gray-900 font-medium">{notification.content || 'No content'}</p>
                     {notification.job && (
-                      <p className="text-gray-600 text-sm">
-                        Job: {notification.job.title}
-                      </p>
+                      <p className="text-gray-600 text-sm">Job: {notification.job.title || 'Unknown'}</p>
                     )}
                     <p className="text-gray-600 text-sm">
                       From: {notification.senderModel === 'System' ? 'System' : notification.sender?.name || 'Unknown'}
                     </p>
                     <p className="text-gray-500 text-sm">
-                      {new Date(notification.sentAt).toLocaleString()}
+                      {notification.sentAt
+                        ? formatDistanceToNow(new Date(notification.sentAt), { addSuffix: true })
+                        : 'Unknown time'}
                     </p>
                   </div>
                   <div className="flex gap-2 mt-4 sm:mt-0">
                     {!notification.read && (
                       <button
                         onClick={() => handleMarkAsRead(notification._id)}
-                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200"
+                        className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                        disabled={buttonLoading[notification._id] === 'read'}
                       >
-                        Mark as Read
+                        {buttonLoading[notification._id] === 'read' ? (
+                          <span className="animate-spin h-5 w-5 border-2 border-t-white rounded-full"></span>
+                        ) : (
+                          'Mark as Read'
+                        )}
                       </button>
                     )}
                     <button
                       onClick={() => handleDeleteNotification(notification._id)}
-                      className="bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg transition duration-200"
+                      className="bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                      disabled={buttonLoading[notification._id] === 'delete'}
                     >
-                      Delete
+                      {buttonLoading[notification._id] === 'delete' ? (
+                        <span className="animate-spin h-5 w-5 border-2 border-t-red-700 rounded-full"></span>
+                      ) : (
+                        'Delete'
+                      )}
                     </button>
                   </div>
                 </div>

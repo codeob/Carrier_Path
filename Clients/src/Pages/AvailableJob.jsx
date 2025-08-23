@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import { debounce } from 'lodash';
-
 const Available = () => {
   const navigate = useNavigate();
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
@@ -29,7 +28,6 @@ const Available = () => {
   const [submissionError, setSubmissionError] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const jobsPerPage = 10;
-
   // Debounced search
   const debouncedSearch = useCallback(
     debounce((value) => {
@@ -38,7 +36,6 @@ const Available = () => {
     }, 300),
     []
   );
-
   useEffect(() => {
     const fetchJobs = async () => {
       try {
@@ -57,10 +54,9 @@ const Available = () => {
           sortBy,
           sortOrder,
         };
-
         const response = await axios.get('http://localhost:5040/api/jobs/public', { params });
-        const fetchedJobs = Array.isArray(response.data.jobs || response.data.data || response.data) 
-          ? (response.data.jobs || response.data.data || response.data) 
+        const fetchedJobs = Array.isArray(response.data.jobs || response.data.data || response.data)
+          ? (response.data.jobs || response.data.data || response.data)
           : [];
         setJobs(fetchedJobs);
         setTotalPages(response.data.totalPages || Math.ceil(fetchedJobs.length / jobsPerPage));
@@ -72,10 +68,8 @@ const Available = () => {
         setIsLoading(false);
       }
     };
-
     fetchJobs();
   }, [currentPage, searchTerm, filters, sortBy, sortOrder]);
-
   const handleApply = async (data) => {
     try {
       setIsSubmitting(true);
@@ -86,12 +80,10 @@ const Available = () => {
         navigate('/user/auth');
         return;
       }
-
       if (!data.resume || !data.resume[0]) {
         setSubmissionError('Please upload a resume.');
         return;
       }
-
       const formData = new FormData();
       formData.append('jobId', selectedJob?._id);
       formData.append('fullName', data.fullName);
@@ -100,14 +92,12 @@ const Available = () => {
       formData.append('resume', data.resume[0]);
       if (data.portfolioLink) formData.append('portfolioLink', data.portfolioLink);
       if (data.githubLink) formData.append('githubLink', data.githubLink);
-
       const response = await axios.post('http://localhost:5040/api/applications', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       });
-
       if (response.status === 201) {
         setShowApplyModal(false);
         reset();
@@ -128,19 +118,16 @@ const Available = () => {
       setIsSubmitting(false);
     }
   };
-
   const handleFilterChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
     setCurrentPage(1);
   };
-
   const handleSortChange = (e) => {
     const [newSortBy, newSortOrder] = e.target.value.split(':');
     setSortBy(newSortBy);
     setSortOrder(newSortOrder);
     setCurrentPage(1);
   };
-
   const filteredJobs = Array.isArray(jobs) ? jobs.filter(
     job => {
       const matchesSearch =
@@ -159,7 +146,6 @@ const Available = () => {
       return matchesSearch && matchesFilters && isPublished;
     }
   ) : [];
-
   const getStatusColor = (status) => {
     switch (status) {
       case 'published':
@@ -172,7 +158,6 @@ const Available = () => {
         return 'bg-blue-100 text-blue-800 border-blue-200';
     }
   };
-
   const formatSalary = (salary) => {
     if (!salary) return 'Not specified';
     const salaryTypes = [
@@ -186,14 +171,12 @@ const Available = () => {
       .map(type => `$${Number(salary[type.key]).toLocaleString()}${type.label}`);
     return availableSalaries.length > 0 ? availableSalaries.join(', ') : 'Not specified';
   };
-
   const formatField = (value) => {
     return value ? value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ') : 'N/A';
   };
-
   return (
     <div className="min-h-screen bg-white px-4 sm:px-6 lg:px-8 pt-20 pb-6">
-      <div className={`max-w-7xl mx-auto ${showApplyModal || showSuccessModal ? 'backdrop-blur-md' : ''}`}>
+      <div className="max-w-7xl mx-auto ${showApplyModal || showSuccessModal ? 'backdrop-blur-md' : ''}">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -202,7 +185,6 @@ const Available = () => {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
@@ -269,7 +251,7 @@ const Available = () => {
                 <option value="createdAt:desc">Newest First</option>
                 <option value="createdAt:asc">Oldest First</option>
                 <option value="salary.yearly:desc">Salary (High to Low)</option>
-                <option value="salary.yearly:asc">Salary (Low to High)</option>
+                <option value="salary.yearly:asc">Salary (Low to High</option>
               </select>
             </div>
           </div>
@@ -309,13 +291,11 @@ const Available = () => {
             </div>
           </div>
         </div>
-
         {isLoading && (
           <div className="flex justify-center items-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
         )}
-
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
             <div className="flex items-center gap-2">
@@ -324,7 +304,6 @@ const Available = () => {
             </div>
           </div>
         )}
-
         {!isLoading && filteredJobs.length === 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
             <div className="w-24 h-24 mx-auto mb-4 text-gray-300">
@@ -339,7 +318,6 @@ const Available = () => {
             <p className="text-gray-600">Raw jobs fetched: {jobs.length}</p>
           </div>
         )}
-
         {!isLoading && filteredJobs.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredJobs.map((job) => (
@@ -347,6 +325,14 @@ const Available = () => {
                 <div className="flex flex-col items-start mb-2">
                   <div className="mb-1">
                     <h2 className="text-lg font-semibold text-gray-900">{job.title}</h2>
+                    <p className="text-sm text-gray-600">{job.companyName || 'N/A'}</p>
+                    {job.companyImage && (
+                      <img
+                        src={`http://localhost:5040${job.companyImage}`}
+                        alt={job.companyName || 'Company Logo'}
+                        className="w-16 h-16 object-contain mt-2"
+                      />
+                    )}
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(job.status)}`}>
                     {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
@@ -410,7 +396,7 @@ const Available = () => {
                           </li>
                         ))
                       ) : (
-                        <li className="text-gray-600">No requirements specified</li>
+                        <span className="text-gray-600">No requirements specified</span>
                       )}
                     </ul>
                   </div>
@@ -431,7 +417,6 @@ const Available = () => {
             ))}
           </div>
         )}
-
         {totalPages > 1 && (
           <div className="mt-6 flex justify-between items-center">
             <button
@@ -453,7 +438,6 @@ const Available = () => {
             </button>
           </div>
         )}
-
         {/* Apply Modal */}
         {showApplyModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -478,7 +462,7 @@ const Available = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                   <input
                     type="email"
-                    {...register('email', { 
+                    {...register('email', {
                       required: 'Email is required',
                       pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' }
                     })}
@@ -547,7 +531,6 @@ const Available = () => {
             </div>
           </div>
         )}
-
         {/* Success Modal */}
         {showSuccessModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -575,5 +558,4 @@ const Available = () => {
     </div>
   );
 };
-
 export default Available;

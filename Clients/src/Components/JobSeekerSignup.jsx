@@ -5,14 +5,12 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { FcGoogle } from 'react-icons/fc';
 import { FaGithub, FaTwitter, FaLinkedin } from 'react-icons/fa';
-
 const UserAuth = () => {
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
-
   useEffect(() => {
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
@@ -20,7 +18,6 @@ const UserAuth = () => {
       navigate('/jobseeker/dashboard');
     }
   }, [navigate]);
-
   const onSubmit = async (data) => {
     setIsLoading(true);
     setErrorMessage('');
@@ -34,19 +31,15 @@ const UserAuth = () => {
             password: data.password,
             skills: data.skills ? data.skills.split(',').map(skill => skill.trim()) : []
           };
-
       const response = await axios.post(url, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-
       if (!response.data.token || !response.data.jobSeeker?.name) {
         throw new Error('Invalid response from server');
       }
-
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('userName', response.data.jobSeeker.name);
       localStorage.setItem('role', 'user');
-
       setTimeout(() => {
         setIsLoading(false);
         reset();
@@ -60,7 +53,6 @@ const UserAuth = () => {
       setTimeout(() => setErrorMessage(''), 5000);
     }
   };
-
   const handleSocialAuth = (provider) => {
     setIsLoading(true);
     alert(`${provider} authentication is not yet implemented. Please use email and password.`);
@@ -68,7 +60,6 @@ const UserAuth = () => {
       setIsLoading(false);
     }, 2000);
   };
-
   const PulseRingLoader = () => (
     <div className="fixed inset-0 bg-cover bg-center z-50 flex items-center justify-center">
       <motion.img
@@ -101,7 +92,6 @@ const UserAuth = () => {
       </div>
     </div>
   );
-
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
       <motion.img
@@ -146,9 +136,9 @@ const UserAuth = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
             <input
               type="email"
-              {...register('email', { 
-                required: 'Email is required', 
-                pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' } 
+              {...register('email', {
+                required: 'Email is required',
+                pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' }
               })}
               className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 text-sm ${errors.email ? 'border-red-300' : 'border-gray-300'}`}
             />
@@ -158,9 +148,9 @@ const UserAuth = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Password *</label>
             <input
               type="password"
-              {...register('password', { 
-                required: 'Password is required', 
-                minLength: { value: 6, message: 'Password must be at least 6 characters' } 
+              {...register('password', {
+                required: 'Password is required',
+                minLength: { value: 6, message: 'Password must be at least 6 characters' }
               })}
               className={`w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 text-sm ${errors.password ? 'border-red-300' : 'border-gray-300'}`}
             />
@@ -193,5 +183,4 @@ const UserAuth = () => {
     </div>
   );
 };
-
 export default UserAuth;

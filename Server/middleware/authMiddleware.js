@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 // Import Recruiter and JobSeeker models
 const Recruiter = require('../Models/RecruiterModel');
 const JobSeeker = require('../Models/JobSeekerModel');
-
 // Middleware to authenticate requests
 const authMiddleware = (roles) => {
   return async (req, res, next) => {
@@ -13,13 +12,11 @@ const authMiddleware = (roles) => {
       if (!token) {
         return res.status(401).json({ message: 'No token provided' });
       }
-
       // Verify the token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       if (!decoded.recruiterId && !decoded.id) {
         return res.status(401).json({ message: 'Invalid token: Missing recruiterId or id' });
       }
-
       // Determine user type based on role
       if (decoded.role === 'recruiter') {
         // Find recruiter by ID
@@ -56,14 +53,12 @@ const authMiddleware = (roles) => {
       } else {
         return res.status(401).json({ message: 'Invalid role' });
       }
-
       // Update lastActivity timestamp
       if (req.recruiter) {
         await Recruiter.findByIdAndUpdate(req.recruiter.recruiterId, { lastActivity: new Date() });
       } else if (req.user) {
         await JobSeeker.findByIdAndUpdate(req.user.id, { lastActivity: new Date() });
       }
-
       // Proceed to next middleware
       next();
     } catch (error) {
@@ -74,6 +69,5 @@ const authMiddleware = (roles) => {
     }
   };
 };
-
 // Export the middleware
 module.exports = authMiddleware;

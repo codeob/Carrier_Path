@@ -6,7 +6,6 @@ const router = express.Router();
 const { SignupRecruiter, LoginRecruiter, LogoutRecruiter, getProfile } = require('../Controllers/RecruiterController');
 // Import authentication middleware
 const auth = require('../middleware/authMiddleware');
-
 // Public route for recruiter signup
 router.post('/signup', SignupRecruiter);
 // Public route for recruiter login
@@ -15,6 +14,5 @@ router.post('/login', LoginRecruiter);
 router.post('/logout', auth(['recruiter']), LogoutRecruiter);
 // Protected route to get recruiter profile, restricted to 'recruiter' role
 router.get('/profile', auth(['recruiter']), getProfile);
-
 // Export the router for use in the main app
 module.exports = router;

@@ -2,7 +2,6 @@
 const mongoose = require('mongoose');
 // Import bcrypt for password hashing
 const bcrypt = require('bcryptjs');
-
 // Define the schema for the JobSeeker collection
 const jobSeekerSchema = new mongoose.Schema({
   // Name field for the job seeker's full name
@@ -40,7 +39,6 @@ const jobSeekerSchema = new mongoose.Schema({
     default: null, // Initially null until updated
   },
 });
-
 // Pre-save hook to hash the password before saving
 jobSeekerSchema.pre('save', async function (next) {
   // Check if the password field has been modified
@@ -51,13 +49,11 @@ jobSeekerSchema.pre('save', async function (next) {
   // Proceed to the next middleware
   next();
 });
-
 // Instance method to compare a candidate password with the stored hash
 jobSeekerSchema.methods.comparePassword = async function (candidatePassword) {
   // Use bcrypt to compare the provided password with the stored hash
   return bcrypt.compare(candidatePassword, this.password);
 };
-
 // Create and export the JobSeeker model
 const JobSeeker = mongoose.model('JobSeeker', jobSeekerSchema);
 // Export the model for use in other files

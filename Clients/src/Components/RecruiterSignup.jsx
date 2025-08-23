@@ -5,28 +5,23 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub, FaTwitter, FaLinkedin } from "react-icons/fa";
-
 const RecruiterAuth = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
       const url = isLogin
         ? "http://localhost:5040/api/recruiter/login"
         : "http://localhost:5040/api/recruiter/signup";
-
       const response = await axios.post(url, data, {
         headers: { "Content-Type": "application/json" },
       });
-
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("userName", response.data.recruiter.name);
       localStorage.setItem("role", "recruiter");
-
       setTimeout(() => {
         setIsLoading(false);
         navigate("/recruiter/dashboard");
@@ -37,7 +32,6 @@ const RecruiterAuth = () => {
       alert(error.response?.data?.message || "An error occurred");
     }
   };
-
   const handleSocialAuth = (provider) => {
     setIsLoading(true);
     console.log(`Auth with ${provider}`);
@@ -46,7 +40,6 @@ const RecruiterAuth = () => {
       navigate("/recruiter/dashboard");
     }, 2000);
   };
-
   const PulseRingLoader = () => (
     <div className="fixed inset-0 bg-cover bg-center z-50 flex items-center justify-center">
       <motion.img
@@ -79,7 +72,6 @@ const RecruiterAuth = () => {
       </div>
     </div>
   );
-
   return (
     <>
       <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
@@ -160,5 +152,4 @@ const RecruiterAuth = () => {
     </>
   );
 };
-
 export default RecruiterAuth;
