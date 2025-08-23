@@ -34,7 +34,7 @@ const JobSeekerNavbar = () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          navigate('/user/signup');
+          navigate('/user/auth');
           return;
         }
         const response = await axios.get('http://localhost:5040/api/jobseeker/profile', {
@@ -43,6 +43,11 @@ const JobSeekerNavbar = () => {
         setUserProfile(response.data.jobSeeker);
       } catch (error) {
         console.error('Error fetching profile:', error);
+        if (error?.response?.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/user/auth');
+          return;
+        }
         const userName = localStorage.getItem('userName');
         if (userName) {
           setUserProfile(prevState => ({ ...prevState, name: userName }));
@@ -59,6 +64,10 @@ const JobSeekerNavbar = () => {
         setUnreadNotificationCount(response.data.count || 0);
       } catch (error) {
         console.error('Error fetching unread notification count:', error);
+        if (error?.response?.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/user/auth');
+        }
       }
     };
     fetchProfile();
@@ -77,13 +86,11 @@ const JobSeekerNavbar = () => {
     } catch (error) {
       console.error('Logout error:', error);
     }
-   
     localStorage.removeItem('token');
     localStorage.removeItem('userName');
     localStorage.removeItem('role');
     localStorage.removeItem('userProfile');
-   
-    navigate('/user/signup');
+    navigate('/user/auth');
   }, [navigate]);
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);

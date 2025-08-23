@@ -9,16 +9,12 @@ function parseArrayField(input, fallback) {
   if (Array.isArray(input)) return input;
   if (typeof input === 'string') {
     const trimmed = input.trim();
-    // Try JSON array first
     if (trimmed.startsWith('[')) {
       try {
         const parsed = JSON.parse(trimmed);
         return Array.isArray(parsed) ? parsed : fallback;
-      } catch (_) {
-        // fallthrough to comma-separated
-      }
+      } catch (_) {}
     }
-    // Fallback: comma-separated list
     return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
   }
   return fallback;
@@ -180,6 +176,7 @@ exports.getJobs = async (req, res) => {
       minSalary,
       maxSalary,
       experience,
+      status,
       sortBy = 'createdAt',
       sortOrder = 'desc',
     } = req.query;
@@ -197,6 +194,7 @@ exports.getJobs = async (req, res) => {
 
     if (jobType) query.jobType = jobType;
     if (employmentType) query.employmentType = employmentType;
+    if (status && ['draft', 'published', 'archived'].includes(status)) query.status = status;
     if (location) query['location.city'] = { $regex: location, $options: 'i' };
     if (minSalary) query['salary.yearly'] = { $gte: Number(minSalary) };
     if (maxSalary) query['salary.yearly'] = { ...query['salary.yearly'], $lte: Number(maxSalary) };

@@ -51,11 +51,10 @@ exports.createApplication = async (req, res) => {
 // Get all applications for the recruiter's jobs
 exports.getApplications = async (req, res) => {
   try {
-    // Find jobs posted by the recruiter
-    const jobs = await Job.find({ postedBy: req.recruiter?.recruiterId || req.user?.id }).select('_id');
+    const requesterId = req.recruiter?.recruiterId || req.user?.id;
+    const jobs = await Job.find({ postedBy: requesterId }).select('_id');
     const jobIds = jobs.map(job => job._id);
 
-    // Fetch applications for those jobs
     const applications = await Application.find({ jobId: { $in: jobIds } })
       .populate('jobId', 'title jobType employmentType companyName companyImage')
       .populate('userId', 'skills');
@@ -73,19 +72,19 @@ exports.updateApplication = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    // Verify the application belongs to a job posted by the recruiter
     const application = await Application.findById(id).populate('jobId');
     if (!application) {
       return res.status(404).json({ message: 'Application not found' });
     }
-    if (application.jobId.postedBy.toString() !== (req.recruiter?.recruiterId || req.user?.id)) {
+
+    const requesterId = req.recruiter?.recruiterId || req.user?.id;
+    if (application.jobId.postedBy.toString() !== String(requesterId)) {
       return res.status(403).json({ message: 'Unauthorized to update this application' });
     }
 
     application.status = status;
     await application.save();
 
-    // Re-populate to return updated data
     const updatedApplication = await Application.findById(id)
       .populate('jobId', 'title jobType employmentType companyName companyImage')
       .populate('userId', 'skills');
@@ -102,12 +101,13 @@ exports.deleteApplication = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Verify the application belongs to a job posted by the recruiter
     const application = await Application.findById(id).populate('jobId');
     if (!application) {
       return res.status(404).json({ message: 'Application not found' });
     }
-    if (application.jobId.postedBy.toString() !== (req.recruiter?.recruiterId || req.user?.id)) {
+
+    const requesterId = req.recruiter?.recruiterId || req.user?.id;
+    if (application.jobId.postedBy.toString() !== String(requesterId)) {
       return res.status(403).json({ message: 'Unauthorized to delete this application' });
     }
 
@@ -131,7 +131,6 @@ exports.deleteApplication = async (req, res) => {
 // Mark applications as read (no-op if schema lacks a 'read' flag)
 exports.markApplicationsAsRead = async (req, res) => {
   try {
-    // Basic implementation to avoid route crash; extend to update a 'read' flag if present
     res.json({ message: 'Mark as read processed' });
   } catch (error) {
     console.error('Error marking applications as read:', error);

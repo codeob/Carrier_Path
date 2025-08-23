@@ -108,8 +108,21 @@ const ViewPost = () => {
 
   const formatField = (value) => (value ? value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ') : 'N/A');
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'published':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'draft':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'archived':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      default:
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white px-4 sm:px-6 lg:px-8 pt-20 pb-6">
+    <div className="min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 py-6 pt-20">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -136,9 +149,10 @@ const ViewPost = () => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Search by title, location, or tools..."
+                  placeholder="Search by title, company, or tools..."
                   onChange={(e) => debouncedSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                  aria-label="Search jobs"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <span className="text-gray-400">🔍</span>
@@ -151,12 +165,15 @@ const ViewPost = () => {
                 name="jobType"
                 value={filters.jobType}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                aria-label="Work arrangement"
               >
-                <option value="">All Arrangements</option>
-                <option value="remote">Remote</option>
-                <option value="in-office">In-Office</option>
-                <option value="hybrid">Hybrid</option>
+                <option value="">All Work Types</option>
+                {['remote', 'in-office', 'hybrid'].map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1).replace('-', ' ')}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -165,24 +182,65 @@ const ViewPost = () => {
                 name="employmentType"
                 value={filters.employmentType}
                 onChange={handleFilterChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                aria-label="Employment type"
               >
-                <option value="">All Types</option>
-                <option value="full-time">Full-Time</option>
-                <option value="part-time">Part-Time</option>
-                <option value="contract">Contract</option>
-                <option value="internship">Internship</option>
+                <option value="">All Employment Types</option>
+                {['full-time', 'part-time', 'contract', 'internship'].map((type) => (
+                  <option key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1).replace('-', ' ')}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
               <input
-                type="text"
                 name="location"
                 value={filters.location}
                 onChange={handleFilterChange}
-                placeholder="e.g., New York"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                placeholder="Enter city or country"
+                aria-label="Location"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Min Salary (Yearly)</label>
+              <input
+                name="minSalary"
+                type="number"
+                min="0"
+                value={filters.minSalary}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                placeholder="Enter min salary"
+                aria-label="Minimum salary"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Max Salary (Yearly)</label>
+              <input
+                name="maxSalary"
+                type="number"
+                min="0"
+                value={filters.maxSalary}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                placeholder="Enter max salary"
+                aria-label="Maximum salary"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Min Experience (Years)</label>
+              <input
+                name="experience"
+                type="number"
+                min="0"
+                value={filters.experience}
+                onChange={handleFilterChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                placeholder="Enter years"
+                aria-label="Minimum experience"
               />
             </div>
             <div>
@@ -190,67 +248,22 @@ const ViewPost = () => {
               <select
                 value={`${sortBy}:${sortOrder}`}
                 onChange={handleSortChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                aria-label="Sort by"
               >
                 <option value="createdAt:desc">Newest First</option>
                 <option value="createdAt:asc">Oldest First</option>
                 <option value="salary.yearly:desc">Salary (High to Low)</option>
-                <option value="salary.yearly:asc">Salary (Low to High</option>
+                <option value="salary.yearly:asc">Salary (Low to High)</option>
               </select>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Min Salary (Yearly)</label>
-              <input
-                type="number"
-                name="minSalary"
-                value={filters.minSalary}
-                onChange={handleFilterChange}
-                placeholder="e.g., 50000"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-            <div>
-              <label className="block text sm font-medium text-gray-700 mb-2">Max Salary (Yearly)</label>
-              <input
-                type="number"
-                name="maxSalary"
-                value={filters.maxSalary}
-                onChange={handleFilterChange}
-                placeholder="e.g., 100000"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Min Experience (Years)</label>
-              <input
-                type="number"
-                name="experience"
-                value={filters.experience}
-                onChange={handleFilterChange}
-                placeholder="e.g., 2"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-          </div>
         </div>
-
         {isLoading && (
-          <div className="flex justify-center items-center py-12">
+          <div className="flex justify-center items-center py-12" aria-label="Loading jobs">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
         )}
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2">
-              <span className="text-red-400">⚠️</span>
-              <p className="text-red-700">{error}</p>
-            </div>
-          </div>
-        )}
-
         {!isLoading && jobs.length === 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
             <div className="w-24 h-24 mx-auto mb-4 text-gray-300">
@@ -264,14 +277,13 @@ const ViewPost = () => {
             </p>
           </div>
         )}
-
         {!isLoading && jobs.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {jobs.map((job) => (
-              <div key={job._id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 p-4 max-w-md">
+              <div key={job._id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 p-4">
                 <div className="flex flex-col items-start mb-2">
                   <div className="mb-1">
-                    <h2 className="text-lg font-semibold text-gray-900">{job.title}</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">{job.title || 'Untitled'}</h2>
                     <p className="text-sm text-gray-600">{job.companyName || 'N/A'}</p>
                     {job.companyImage && (
                       <img
@@ -281,18 +293,22 @@ const ViewPost = () => {
                       />
                     )}
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(job.status)}`}>
-                    {job.status?.charAt(0).toUpperCase() + job.status?.slice(1)}
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(job.status)}`}
+                  >
+                    {job.status ? job.status.charAt(0).toUpperCase() + job.status.slice(1) : 'N/A'}
                   </span>
                 </div>
                 <div className="space-y-2 mb-2">
                   <div>
                     <h3 className="text-sm font-medium text-gray-900">Description</h3>
-                    <p className="text-gray-600 text-sm">{job.description}</p>
+                    <p className="text-gray-600 text-sm">{job.description || 'No description provided'}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-gray-600">
                     <span className="text-gray-400 text-sm">📍</span>
-                    <span className="text-sm">{job.location?.city || 'N/A'}, {job.location?.state || 'N/A'}, {job.location?.country || 'N/A'}</span>
+                    <span className="text-sm">
+                      {job.location?.city || 'N/A'}, {job.location?.state || 'N/A'}, {job.location?.country || 'N/A'}
+                    </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-gray-600">
                     <span className="text-gray-400 text-sm">🏢</span>
@@ -307,7 +323,9 @@ const ViewPost = () => {
                   <div className="flex flex-wrap items-center gap-2 text-gray-600">
                     <span className="text-gray-400 text-sm">⏱️</span>
                     <span className="text-sm font-medium">Experience: </span>
-                    <span className="text-sm">{job.yearsOfExperience !== undefined ? `${job.yearsOfExperience} years` : 'Not specified'}</span>
+                    <span className="text-sm">
+                      {job.yearsOfExperience !== undefined ? `${job.yearsOfExperience} years` : 'Not specified'}
+                    </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-gray-600">
                     <span className="text-gray-400 text-sm">💰</span>
@@ -320,7 +338,10 @@ const ViewPost = () => {
                     <div className="flex flex-wrap gap-1">
                       {Array.isArray(job.tools) && job.tools.length > 0 ? (
                         job.tools.map((tool, index) => (
-                          <span key={index} className="bg-blue-50 text-blue-700 text-xs font-medium px-1 py-0.5 rounded border border-blue-200">
+                          <span
+                            key={index}
+                            className="bg-blue-50 text-blue-700 text-xs font-medium px-1 py-0.5 rounded border border-blue-200"
+                          >
                             {tool}
                           </span>
                         ))
@@ -340,7 +361,7 @@ const ViewPost = () => {
                           </li>
                         ))
                       ) : (
-                        <span className="text-gray-600">No requirements specified</span>
+                        <li className="text-gray-600">No requirements specified</li>
                       )}
                     </ul>
                   </div>
@@ -350,7 +371,7 @@ const ViewPost = () => {
                     type="button"
                     title="Recruiters cannot apply to their own jobs"
                     disabled
-                    className="cursor-not-allowed bg-gray-100 text-gray-400 font-medium py-1 px-2 rounded-md transition duration-200 flex items-center gap-1 text-sm"
+                    className="w-full cursor-not-allowed bg-green-50 text-green-400 font-medium py-2 px-3 rounded-md transition duration-200 flex items-center justify-center gap-2 text-sm"
                   >
                     <span>📩</span>
                     Apply
@@ -360,42 +381,42 @@ const ViewPost = () => {
             ))}
           </div>
         )}
-
         {!isLoading && totalPages > 1 && (
-          <div className="mt-6 flex justify-between items-center">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            <span className="text-sm text-gray-600">Page {currentPage} of {totalPages}</span>
-            <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
+          <div className="flex justify-center mt-6">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`py-2 px-4 rounded-lg ${
+                  currentPage === 1
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                } transition duration-200`}
+                aria-label="Previous page"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className={`py-2 px-4 rounded-lg ${
+                  currentPage === totalPages
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                } transition duration-200`}
+                aria-label="Next page"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>
     </div>
   );
-};
-
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'published':
-      return 'bg-green-100 text-green-800 border-green-200';
-    case 'draft':
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    case 'archived':
-      return 'bg-gray-100 text-gray-800 border-gray-200';
-    default:
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-  }
 };
 
 export default ViewPost;

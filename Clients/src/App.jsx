@@ -13,28 +13,36 @@ import Analytics from './Pages/Analytics'
 import AvailableJob from './Pages/AvailableJob'
 import Notifications from './Pages/Notifications'
 
-
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(
     <Route path='/'>
       <Route index element={<Home />} />
+
+      {/* Auth routes (aliases for consistency across codebase) */}
       <Route path='/recruiter/signup' element={<RecruiterAuth />} />
-      <Route path='/jobseeker/signup' element={<JobSeekerSignup
-      />} />
+      <Route path='/recruiter/auth' element={<RecruiterAuth />} />
+
+      <Route path='/jobseeker/signup' element={<JobSeekerSignup />} />
+      <Route path='/jobseeker/auth' element={<JobSeekerSignup />} />
+      <Route path='/user/auth' element={<JobSeekerSignup />} />
+
+      {/* Recruiter dashboard */}
       <Route path='/recruiter/dashboard' element={<RecruiterDashboard />}>
         <Route index element={<ViewPost />} />
-        <Route path="viewPost" element={<ViewPost />} />
-        <Route path="CreateJobs" element={<CreateJob />} />
-        <Route path="JobList" element={<JobList />} />
-        <Route path="Applications" element={<Applications />} />
-        <Route path="Analytics" element={<Analytics />} />
-
+        <Route path='viewPost' element={<ViewPost />} />
+        {/* Support both CreateJob and CreateJobs paths */}
+        <Route path='CreateJob' element={<CreateJob />} />
+        <Route path='CreateJobs' element={<CreateJob />} />
+        <Route path='JobList' element={<JobList />} />
+        <Route path='Applications' element={<Applications />} />
+        <Route path='Analytics' element={<Analytics />} />
       </Route>
-      {/* <Route path='/jobseeker/dashboard' element={<JobSeekerNavbar/>}> */}
+
+      {/* Jobseeker dashboard */}
       <Route path='/jobseeker/dashboard' element={<JobSeekerDashboard />}>
-      <Route index element={<AvailableJob />} />
-      <Route path="availableJobs" element={<AvailableJob />} />
-      <Route path="notifications" element={<Notifications />} />
+        <Route index element={<AvailableJob />} />
+        <Route path='availableJobs' element={<AvailableJob />} />
+        <Route path='notifications' element={<Notifications />} />
       </Route>
     </Route>
   ))

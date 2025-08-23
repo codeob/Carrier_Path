@@ -64,8 +64,12 @@ const authMiddleware = (roles) => {
     } catch (error) {
       // Log any errors
       console.error('Authentication error:', error);
-      // Send error response
-      res.status(401).json({ message: 'Invalid token' });
+      // Handle expired tokens explicitly
+      if (error && (error.name === 'TokenExpiredError' || error.message?.toLowerCase().includes('jwt expired'))) {
+        return res.status(401).json({ message: 'Token expired' });
+      }
+      // Send generic error response for other JWT errors
+      return res.status(401).json({ message: 'Invalid token' });
     }
   };
 };

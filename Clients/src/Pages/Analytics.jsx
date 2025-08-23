@@ -19,6 +19,11 @@ const Analytics = () => {
   const [analytics, setAnalytics] = useState({
     jobStats: { totalJobs: 0, publishedJobs: 0, draftJobs: 0 },
     applicationStats: { total: 0, accepted: 0, rejected: 0, pending: 0 },
+    recentJobs: [],
+    topJobs: [],
+    recentApplicationUpdates: [],
+    weeklyApplicationCounts: [],
+    applicationHistory: [],
   });
 
   // Register Chart.js components once on mount to avoid top-level side effects
@@ -44,16 +49,20 @@ const Analytics = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        setAnalytics(
-          response.data || {
-            jobStats: { totalJobs: 0, publishedJobs: 0, draftJobs: 0 },
-            applicationStats: { total: 0, accepted: 0, rejected: 0, pending: 0 },
-          }
-        );
+        setAnalytics({
+          jobStats: response.data?.jobStats || { totalJobs: 0, publishedJobs: 0, draftJobs: 0 },
+          applicationStats: response.data?.applicationStats || { total: 0, accepted: 0, rejected: 0, pending: 0 },
+          recentJobs: response.data?.recentJobs || [],
+          topJobs: response.data?.topJobs || [],
+          recentApplicationUpdates: response.data?.recentApplicationUpdates || [],
+          weeklyApplicationCounts: response.data?.weeklyApplicationCounts || [],
+          applicationHistory: response.data?.applicationHistory || [],
+        });
       } catch (err) {
         const errorMsg = err.response?.data?.message || 'Failed to load analytics data. Please try again.';
         setError(errorMsg);
         if (err.response?.status === 401) {
+          localStorage.removeItem('token');
           navigate('/recruiter/auth');
         }
       } finally {
@@ -162,6 +171,15 @@ const Analytics = () => {
     },
   }), []);
 
+  const formatDateTime = (iso) => {
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString(); // date + time + year
+    } catch {
+      return '';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       <div className="max-w-7xl mx-auto">
@@ -227,6 +245,56 @@ const Analytics = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Job Statistics</h3>
                 <Bar data={barData} options={barOptions} />
               </div>
+            </div>
+
+            {/* Application History */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Application History</h3>
+                <span className="text-sm text-gray-500">Latest {analytics.applicationHistory.length} entries</span>
+              </div>
+              {analytics.applicationHistory.length === 0 ? (
+                <p className="text-gray-600 text-sm">No application history yet.</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Job</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Years (Required)</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied (Date & Time)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {analytics.applicationHistory.map((item) => (
+                        <tr key={item.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.applicantName}</td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-indigo-600">
+                            {item.applicantEmail || 'N/A'}
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.jobTitle}</td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{item.jobYearsOfExperience ?? 'N/A'}</td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm">
+                            <span className={`px-2 py-0.5 rounded-full border text-xs font-medium ${
+                              item.status === 'accepted'
+                                ? 'bg-green-50 text-green-700 border-green-200'
+                                : item.status === 'rejected'
+                                ? 'bg-red-50 text-red-700 border-red-200'
+                                : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                            }`}>
+                              {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">{formatDateTime(item.createdAt)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </>
         )}
