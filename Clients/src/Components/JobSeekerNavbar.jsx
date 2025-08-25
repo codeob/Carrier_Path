@@ -73,6 +73,29 @@ const JobSeekerNavbar = () => {
     fetchProfile();
     fetchUnreadNotificationCount();
   }, [navigate]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    const interval = setInterval(async () => {
+      try {
+        const response = await axios.get('http://localhost:5040/api/messages/unread-count', {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        setUnreadNotificationCount(response.data.count || 0);
+      } catch (e) {
+        if (e?.response?.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userName');
+          localStorage.removeItem('role');
+          localStorage.removeItem('userProfile');
+          navigate('/user/auth');
+        }
+      }
+    }, 60000); // poll every 60 seconds
+    return () => clearInterval(interval);
+  }, []);
+
   const handleLogout = useCallback(async () => {
     const confirmLogout = window.confirm('Are you sure you want to logout?');
     if (!confirmLogout) return;

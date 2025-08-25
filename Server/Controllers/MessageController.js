@@ -13,7 +13,7 @@ exports.getMessages = async (req, res) => {
       recipient: id,
       recipientModel: model,
     })
-      .populate('job', 'title')
+      .populate('job', 'title location createdAt')
       .populate('sender', 'name')
       .sort({ sentAt: -1 });
     // Log number of messages fetched

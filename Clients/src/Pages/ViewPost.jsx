@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { debounce } from 'lodash';
+import { formatDistanceToNow, format } from 'date-fns';
 
 const ViewPost = () => {
   const navigate = useNavigate();
@@ -107,6 +108,21 @@ const ViewPost = () => {
   };
 
   const formatField = (value) => (value ? value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ') : 'N/A');
+
+  const isJobNew = (createdAt) => {
+    if (!createdAt) return false;
+    const created = new Date(createdAt).getTime();
+    return Date.now() - created < 24 * 60 * 60 * 1000;
+  };
+
+  const formatPostedTime = (ts) => {
+    if (!ts) return '';
+    const d = new Date(ts);
+    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+    const diff = Date.now() - d.getTime();
+    if (diff <= threeDaysMs) return `Posted ${formatDistanceToNow(d, { addSuffix: true })}`;
+    return `Posted ${format(d, 'EEE, MMM d, yyyy HH:mm')}`;
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -283,8 +299,14 @@ const ViewPost = () => {
               <div key={job._id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 p-4">
                 <div className="flex flex-col items-start mb-2">
                   <div className="mb-1">
-                    <h2 className="text-lg font-semibold text-gray-900">{job.title || 'Untitled'}</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {job.title || 'Untitled'}
+                      {isJobNew(job.createdAt) && (
+                        <span className="ml-2 bg-red-100 text-red-700 text-[10px] font-semibold px-1.5 py-0.5 rounded align-middle">NEW</span>
+                      )}
+                    </h2>
                     <p className="text-sm text-gray-600">{job.companyName || 'N/A'}</p>
+                    <p className="text-xs text-gray-500">{formatPostedTime(job.createdAt)}</p>
                     {job.companyImage && (
                       <img
                         src={`http://localhost:5040${job.companyImage}`}

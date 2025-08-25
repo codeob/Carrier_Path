@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 
 const Notifications = () => {
   const navigate = useNavigate();
@@ -44,6 +44,21 @@ const Notifications = () => {
       return () => clearTimeout(timer);
     }
   }, [error]);
+
+  const isJobNew = (createdAt) => {
+    if (!createdAt) return false;
+    const created = new Date(createdAt).getTime();
+    return Date.now() - created < 24 * 60 * 60 * 1000;
+  };
+
+  const formatTimestamp = (ts) => {
+    if (!ts) return 'Unknown time';
+    const d = new Date(ts);
+    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+    const diff = Date.now() - d.getTime();
+    if (diff <= threeDaysMs) return formatDistanceToNow(d, { addSuffix: true });
+    return format(d, 'EEE, MMM d, yyyy HH:mm');
+  };
 
   const handleMarkAsRead = async (messageId) => {
     setButtonLoading((prev) => ({ ...prev, [messageId]: 'read' }));
@@ -161,16 +176,23 @@ const Notifications = () => {
                   <div className="flex-1">
                     <p className="text-gray-900 font-medium">{notification.content || 'No content'}</p>
                     {notification.job && (
-                      <p className="text-gray-600 text-sm">Job: {notification.job.title || 'Unknown'}</p>
+                      <div className="flex items-center gap-2 text-sm">
+                        <button
+                          onClick={() => navigate(`/jobseeker/dashboard/availableJobs?jobId=${notification.job._id}`)}
+                          className="text-indigo-600 hover:underline"
+                          title={`${notification.job?.location?.city || 'N/A'}, ${notification.job?.location?.state || 'N/A'}, ${notification.job?.location?.country || 'N/A'}`}
+                        >
+                          Job: {notification.job.title || 'Unknown'}
+                        </button>
+                        {isJobNew(notification.job?.createdAt) && (
+                          <span className="bg-red-100 text-red-700 text-[10px] font-semibold px-1.5 py-0.5 rounded">NEW</span>
+                        )}
+                      </div>
                     )}
                     <p className="text-gray-600 text-sm">
                       From: {notification.senderModel === 'System' ? 'System' : notification.sender?.name || 'Unknown'}
                     </p>
-                    <p className="text-gray-500 text-sm">
-                      {notification.sentAt
-                        ? formatDistanceToNow(new Date(notification.sentAt), { addSuffix: true })
-                        : 'Unknown time'}
-                    </p>
+                    <p className="text-gray-500 text-sm">{formatTimestamp(notification.sentAt)}</p>
                   </div>
                   <div className="flex gap-2 mt-4 sm:mt-0">
                     {!notification.read && (

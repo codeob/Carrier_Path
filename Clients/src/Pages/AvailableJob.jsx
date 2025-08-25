@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import { debounce } from 'lodash';
+import { formatDistanceToNow, format } from 'date-fns';
 
 const Available = () => {
   const navigate = useNavigate();
@@ -200,6 +201,21 @@ const Available = () => {
     return value ? value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ') : 'N/A';
   };
 
+  const isJobNew = (createdAt) => {
+    if (!createdAt) return false;
+    const created = new Date(createdAt).getTime();
+    return Date.now() - created < 24 * 60 * 60 * 1000;
+  };
+
+  const formatPostedTime = (ts) => {
+    if (!ts) return '';
+    const d = new Date(ts);
+    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+    const diff = Date.now() - d.getTime();
+    if (diff <= threeDaysMs) return `Posted ${formatDistanceToNow(d, { addSuffix: true })}`;
+    return `Posted ${format(d, 'EEE, MMM d, yyyy HH:mm')}`;
+  };
+
   return (
     <div className="min-h-screen bg-white px-4 sm:px-6 lg:px-8 pt-20 pb-6">
       <div className="max-w-7xl mx-auto">
@@ -363,8 +379,14 @@ const Available = () => {
               <div id={`job-${job._id}`} key={job._id} className={`bg-white rounded-lg shadow-sm border ${highlightJobId === job._id ? 'ring-2 ring-indigo-400' : 'border-gray-200'} hover:shadow-md transition-shadow duration-200 p-4 max-w-md`}>
                 <div className="flex flex-col items-start mb-2">
                   <div className="mb-1">
-                    <h2 className="text-lg font-semibold text-gray-900">{job.title}</h2>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {job.title}
+                      {isJobNew(job.createdAt) && (
+                        <span className="ml-2 bg-red-100 text-red-700 text-[10px] font-semibold px-1.5 py-0.5 rounded align-middle">NEW</span>
+                      )}
+                    </h2>
                     <p className="text-sm text-gray-600">{job.companyName || 'N/A'}</p>
+                    <p className="text-xs text-gray-500">{formatPostedTime(job.createdAt)}</p>
                     {job.companyImage && (
                       <img
                         src={`http://localhost:5040${job.companyImage}`}
@@ -383,8 +405,13 @@ const Available = () => {
                     <p className="text-gray-600 text-sm">{job.description}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-gray-600">
-                    <span className="text-gray-400 text-sm">��</span>
-                    <span className="text-sm">{job.location?.city || 'N/A'}, {job.location?.state || 'N/A'}, {job.location?.country || 'N/A'}</span>
+                    <span className="text-gray-400 text-sm">📍</span>
+                    <span
+                      className="text-sm"
+                      title={`${job.location?.city || 'N/A'}, ${job.location?.state || 'N/A'}, ${job.location?.country || 'N/A'}`}
+                    >
+                      {job.location?.city || 'N/A'}, {job.location?.state || 'N/A'}, {job.location?.country || 'N/A'}
+                    </span>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 text-gray-600">
                     <span className="text-gray-400 text-sm">🏢</span>

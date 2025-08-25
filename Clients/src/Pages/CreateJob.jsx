@@ -46,31 +46,46 @@ const CreateJob = () => {
   const jobToEdit = location.state?.job;
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/recruiter/auth');
-    }
-
-    if (jobToEdit) {
-      setValue('title', jobToEdit.title || '');
-      setValue('description', jobToEdit.description || '');
-      setValue('yearsOfExperience', jobToEdit.yearsOfExperience || 0);
-      setValue('tools', Array.isArray(jobToEdit.tools) ? jobToEdit.tools.join(', ') : '');
-      setValue('requirements', Array.isArray(jobToEdit.requirements) ? jobToEdit.requirements.join(', ') : '');
-      setValue('location.country', jobToEdit.location?.country || '');
-      setValue('location.state', jobToEdit.location?.state || '');
-      setValue('location.city', jobToEdit.location?.city || '');
-      setValue('jobType', jobToEdit.jobType || '');
-      setValue('employmentType', jobToEdit.employmentType || '');
-      setValue('salary.hourly', jobToEdit.salary?.hourly || '');
-      setValue('salary.weekly', jobToEdit.salary?.weekly || '');
-      setValue('salary.monthly', jobToEdit.salary?.monthly || '');
-      setValue('salary.yearly', jobToEdit.salary?.yearly || '');
-      setValue('companyName', jobToEdit.companyName || '');
-      if (jobToEdit.companyImage) {
-        setImagePreview(`http://localhost:5040${jobToEdit.companyImage}`);
+    const verify = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/recruiter/auth');
+        return;
       }
-    }
+      try {
+        await axios.get('http://localhost:5040/api/recruiter/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (e) {
+        if (e?.response?.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/recruiter/auth');
+          return;
+        }
+      }
+
+      if (jobToEdit) {
+        setValue('title', jobToEdit.title || '');
+        setValue('description', jobToEdit.description || '');
+        setValue('yearsOfExperience', jobToEdit.yearsOfExperience || 0);
+        setValue('tools', Array.isArray(jobToEdit.tools) ? jobToEdit.tools.join(', ') : '');
+        setValue('requirements', Array.isArray(jobToEdit.requirements) ? jobToEdit.requirements.join(', ') : '');
+        setValue('location.country', jobToEdit.location?.country || '');
+        setValue('location.state', jobToEdit.location?.state || '');
+        setValue('location.city', jobToEdit.location?.city || '');
+        setValue('jobType', jobToEdit.jobType || '');
+        setValue('employmentType', jobToEdit.employmentType || '');
+        setValue('salary.hourly', jobToEdit.salary?.hourly || '');
+        setValue('salary.weekly', jobToEdit.salary?.weekly || '');
+        setValue('salary.monthly', jobToEdit.salary?.monthly || '');
+        setValue('salary.yearly', jobToEdit.salary?.yearly || '');
+        setValue('companyName', jobToEdit.companyName || '');
+        if (jobToEdit.companyImage) {
+          setImagePreview(`http://localhost:5040${jobToEdit.companyImage}`);
+        }
+      }
+    };
+    verify();
   }, [navigate, jobToEdit, setValue]);
 
   const handleImageChange = (e) => {
@@ -150,7 +165,13 @@ const CreateJob = () => {
       }, 1500);
     } catch (err) {
       console.error('Error saving job:', err);
-      setError(err.response?.data?.message || 'Failed to save job. Please try again.');
+      if (err?.response?.status === 401) {
+        setError('Session expired. Please log in again.');
+        localStorage.removeItem('token');
+        setTimeout(() => navigate('/recruiter/auth'), 800);
+      } else {
+        setError(err.response?.data?.message || 'Failed to save job. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

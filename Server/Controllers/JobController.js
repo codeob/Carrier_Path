@@ -1,5 +1,7 @@
 const Job = require('../Models/JobModel');
 const Application = require('../Models/ApplicationModel');
+const JobSeeker = require('../Models/JobSeekerModel');
+const Message = require('../Models/MessageModel');
 const path = require('path');
 const fs = require('fs');
 
@@ -31,6 +33,30 @@ function parseObjectField(input, fallback) {
     }
   }
   return fallback;
+}
+
+async function broadcastNewJob(job) {
+  try {
+    const recipients = await JobSeeker.find({}, '_id');
+    if (!recipients || recipients.length === 0) return;
+
+    const loc = job && job.location
+      ? `${job.location.city || 'N/A'}, ${job.location.state || 'N/A'}, ${job.location.country || 'N/A'}`
+      : 'N/A';
+
+    const messages = recipients.map(({ _id }) => ({
+      senderModel: 'System',
+      recipient: _id,
+      recipientModel: 'JobSeeker',
+      job: job._id,
+      content: `New job posted: ${job.title} at ${job.companyName}. Location: ${loc}`,
+      sentAt: new Date(),
+    }));
+
+    await Message.insertMany(messages);
+  } catch (err) {
+    console.error('Failed to broadcast new job notification:', err);
+  }
 }
 
 // Create a new job
@@ -71,6 +97,9 @@ exports.createJob = async (req, res) => {
 
     const job = new Job(jobData);
     await job.save();
+    if (job.status === 'published') {
+      await broadcastNewJob(job);
+    }
 
     res.status(201).json(job);
   } catch (error) {
@@ -102,6 +131,8 @@ exports.updateJob = async (req, res) => {
       return res.status(404).json({ message: 'Job not found or unauthorized' });
     }
 
+    const prevStatus = job.status;
+
     const jobData = {
       title,
       description,
@@ -130,6 +161,10 @@ exports.updateJob = async (req, res) => {
 
     Object.assign(job, jobData);
     await job.save();
+
+    if (prevStatus !== 'published' && job.status === 'published') {
+      await broadcastNewJob(job);
+    }
 
     res.json(job);
   } catch (error) {
