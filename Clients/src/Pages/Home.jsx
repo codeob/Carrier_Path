@@ -1,10 +1,10 @@
-import React from 'react'
-import FormOption from '../Components/FormOptions'
+
+import Navbar from '../Components/Navbar'
 
 function Home() {
   return (
     <div>
-        <FormOption />
+        <Navbar />
     </div>
   )
 }

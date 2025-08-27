@@ -12,6 +12,7 @@ import Applications from './Pages/Applications'
 import Analytics from './Pages/Analytics'
 import AvailableJob from './Pages/AvailableJob'
 import Notifications from './Pages/Notifications'
+import FormOptions from './Components/FormOptions'
 
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(
@@ -21,6 +22,7 @@ function App() {
       {/* Auth routes (aliases for consistency across codebase) */}
       <Route path='/recruiter/signup' element={<RecruiterAuth />} />
       <Route path='/recruiter/auth' element={<RecruiterAuth />} />
+      <Route path='/form' element={<FormOptions/>} />
 
       <Route path='/jobseeker/signup' element={<JobSeekerSignup />} />
       <Route path='/jobseeker/auth' element={<JobSeekerSignup />} />
