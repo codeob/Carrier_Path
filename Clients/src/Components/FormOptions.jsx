@@ -2,97 +2,138 @@ import { motion } from 'framer-motion';
 import { FaUserTie, FaUser } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
-// Animation variants for the container
 const containerVariants = {
-  hidden: { opacity: 0, y: 50 },
+  hidden: { opacity: 0, y: 24 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.8,
-      ease: 'easeOut',
-    },
+    transition: { duration: 0.6, ease: 'easeOut', when: 'beforeChildren', staggerChildren: 0.12 },
   },
 };
 
-// Animation variants for the buttons
-const buttonVariants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: (i) => ({
-    opacity: 1,
-    x: 0,
-    transition: {
-      delay: i * 0.2, // Staggered delay for each button
-      duration: 0.5,
-      ease: 'easeOut',
-    },
-  }),
+const item = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
 };
 
-const FormOption = () => {
+function FormOption() {
+  const bgUrl = 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1920&auto=format&fit=crop';
+
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-amber-50 via-rose-100 to-purple-100">
-      {/* Animated Background Image */}
-      <motion.img
-        src="https://i.pinimg.com/1200x/ac/31/d1/ac31d14c0df6c5a19a90ff4993bbf291.jpg"
-        alt="Background"
-        className="absolute inset-0 w-full h-full object-cover"
-        initial={{ scale: 1.5 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 5, ease: 'easeInOut' }} // Removed repeat and repeatType
-      />
-      
-      {/* Animated Content Container */}
-      <motion.div
-        className="relative z-10 bg-white bg-opacity-90 rounded-xl shadow-2xl p-6 sm:p-8 md:p-10 max-w-md sm:max-w-lg md:max-w-2xl mx-auto text-center"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-sans font-bold text-gray-900 mb-3 sm:mb-4">
-          Welcome to Our Platform
-        </h1>
-        <p className="text-sm sm:text-base md:text-lg text-gray-700 mb-6 sm:mb-8 max-w-xs sm:max-w-md md:max-w-lg mx-auto">
-          Discover opportunities or connect with top talent. Select your role to get started.
-        </p>
+    <section className="relative isolate overflow-hidden">
+      {/* Background with dark gradient overlay to match hero */}
+      <div className="absolute inset-0 -z-10">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `linear-gradient(rgba(2,6,23,0.55), rgba(2,6,23,0.65)), url(${bgUrl})` }}
+        />
+        {/* Animated blobs (match hero styling) */}
+        <motion.div
+          aria-hidden="true"
+          className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-green-400/30 blur-3xl"
+          animate={{ x: [0, 20, 0], y: [0, 10, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          aria-hidden="true"
+          className="absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-teal-400/30 blur-3xl"
+          animate={{ x: [0, -15, 0], y: [0, -10, 0] }}
+          transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
+          />
+      </div>
 
-        {/* Buttons Container */}
-        <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
-          {/* Recruiter Button */}
-          <motion.button
-            className="flex items-center justify-center gap-2 sm:gap-3 bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded-md shadow-md transition-colors duration-300 text-sm sm:text-base"
-            variants={buttonVariants}
-            custom={0} // First button, no delay
-            initial="hidden"
-            animate="visible"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <motion.div
+          className="min-h-[70vh] sm:min-h-[80vh] md:min-h-[85vh] lg:min-h-screen py-14 sm:py-16 md:py-20 flex flex-col items-center justify-center text-center"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* Heading directly on image */}
+          <motion.h1
+            variants={item}
+            className="text-white drop-shadow-2xl text-3xl min-[320px]:text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight max-w-3xl"
           >
-            <FaUserTie className="text-lg sm:text-xl" />
-            <Link to="/recruiter/signup" className="flex items-center gap-2">
-              <span>Recruiter Signup/Login</span>
-            </Link>
-          </motion.button>
+            Choose Your Path
+          </motion.h1>
+          <motion.p
+            variants={item}
+            className="mt-3 sm:mt-4 text-gray-100 drop-shadow text-base sm:text-lg md:text-xl max-w-2xl"
+          >
+            Whether you are hiring top talent or looking for your next opportunity, start the journey that fits you.
+          </motion.p>
 
-          {/* User Button */}
-          <motion.button
-            className="flex items-center justify-center gap-2 sm:gap-3 bg-teal-700 hover:bg-teal-600 text-white font-semibold py-2 sm:py-3 px-4 sm:px-6 rounded-md shadow-md transition-colors duration-300 text-sm sm:text-base"
-            variants={buttonVariants}
-            custom={1} // Second button, delayed
-            initial="hidden"
-            animate="visible"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          {/* Subtle mobile-only gradient behind text for readability */}
+          <div className="pointer-events-none absolute inset-x-0 top-24 sm:hidden bg-gradient-to-b from-transparent via-black/20 to-black/30 h-40" />
+
+          {/* Options grid */}
+          <motion.div
+            variants={containerVariants}
+            className="mt-8 sm:mt-10 grid w-full max-w-4xl grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
           >
-            <FaUser className="text-lg sm:text-xl" />
-            <Link to="jobseeker/signup" className="flex items-center gap-2">
-              <span>JobSeeker Signup/Login</span>
-            </Link>
-          </motion.button>
-        </div>
-      </motion.div>
-    </div>
+            {/* Recruiter Card */}
+            <motion.div
+              variants={item}
+              whileHover={{ y: -4, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="group relative rounded-2xl bg-white/10 backdrop-blur-md ring-1 ring-white/20 shadow-xl overflow-hidden"
+            >
+              {/* Accent gradient */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-tr from-green-500/10 via-teal-500/10 to-cyan-500/10" />
+              <Link to="/recruiter/signup" className="relative block p-6 sm:p-7 md:p-8">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-teal-500 text-white shadow-lg ring-1 ring-white/20">
+                    <FaUserTie className="text-xl" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-white font-bold text-lg sm:text-xl">Recruiter</h3>
+                    <p className="text-gray-200 text-sm sm:text-base mt-1 max-w-[28ch]">
+                      Post jobs, manage applications, and connect with top candidates.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-5 flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-teal-500 px-5 py-2 text-white text-sm font-semibold shadow-lg group-hover:shadow-xl">
+                    Continue
+                  </span>
+                  <span className="text-white/80 text-sm">It’s fast and free</span>
+                </div>
+              </Link>
+            </motion.div>
+
+            {/* JobSeeker Card */}
+            <motion.div
+              variants={item}
+              whileHover={{ y: -4, scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="group relative rounded-2xl bg-white/10 backdrop-blur-md ring-1 ring-white/20 shadow-xl overflow-hidden"
+            >
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-tr from-green-500/10 via-teal-500/10 to-cyan-500/10" />
+              <Link to="/jobseeker/signup" className="relative block p-6 sm:p-7 md:p-8">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-teal-500 text-white shadow-lg ring-1 ring-white/20">
+                    <FaUser className="text-xl" />
+                  </div>
+                  <div className="text-left">
+                    <h3 className="text-white font-bold text-lg sm:text-xl">Job Seeker</h3>
+                    <p className="text-gray-200 text-sm sm:text-base mt-1 max-w-[28ch]">
+                      Explore jobs, analyze your CV, and apply confidently.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-5 flex items-center gap-3">
+                  <span className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-green-500 to-teal-500 px-5 py-2 text-white text-sm font-semibold shadow-lg group-hover:shadow-xl">
+                    Continue
+                  </span>
+                  <span className="text-white/80 text-sm">No credit card required</span>
+                </div>
+              </Link>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      </div>
+    </section>
   );
-};
+}
 
 export default FormOption;
