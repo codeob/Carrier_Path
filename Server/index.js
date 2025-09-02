@@ -16,7 +16,8 @@ const applicationRoutes = require('./Routes/ApplicationRoute');
 const cvRoutes = require('./Routes/CvRoute');
 const messageRoutes = require('./Routes/MessageRoute');
 const analyticsRoutes = require('./Routes/AnalyticsRoute');
-const cvScannerRoutes  = require('./cvScanner')
+const cvScannerRoutes = require('./Routes/cvScannerRoute'); // New route for CV Scanner
+
 // Import mongoose for MongoDB interactions
 const mongoose = require('mongoose');
 // Import path for handling file paths
@@ -47,7 +48,8 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/cvs', cvRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/analytics', analyticsRoutes);
-app.use('/api', cvScannerRoutes);
+app.use('/api/cvscanner', cvScannerRoutes); // New CV Scanner route
+
 // Connect to MongoDB and start server
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
