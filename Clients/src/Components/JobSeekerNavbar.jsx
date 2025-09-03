@@ -126,7 +126,7 @@ const JobSeekerNavbar = () => {
     { path: '/jobseeker/dashboard/availableJobs', label: 'Available Jobs', icon: FaTachometerAlt },
     { path: '/jobseeker/dashboard/cvRater', label: 'AI CV Rater', icon: FaFileAlt },
     { path: '/jobseeker/dashboard/notifications', label: 'Notifications', icon: FaBell, badge: unreadNotificationCount },
-    { path: '/settings', label: 'Settings', icon: FaCog },
+  
   ];
   const getInitials = (name) => {
     if (name) {

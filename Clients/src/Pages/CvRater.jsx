@@ -3,10 +3,9 @@
 // Handles file upload, job description input, API calls, and result display.
 
 import React, { useState } from 'react';
-import Navbar from '../Components/Navbar'
-import Footer from '../Components/Footer'
 
-const CvScan = () => {
+
+const CvRater = () => {
   const [cvFile, setCvFile] = useState(null);
   const [jobDescription, setJobDescription] = useState('');
   const [result, setResult] = useState(null);
@@ -63,7 +62,7 @@ const CvScan = () => {
 
   return (
     <div className="">
-       <Navbar/>
+     
       <div className="p-6 max-w-4xl mx-auto">
       
       <h2 className="text-2xl font-bold mb-6 text-center">Tech Industry CV Scanner</h2>
@@ -143,9 +142,8 @@ const CvScan = () => {
         </div>
       )}
     </div>
-    <Footer/>
     </div>
   );
 };
 
-export default CvScan;
+export default CvRater;

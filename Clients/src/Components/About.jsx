@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 // Animation variants
 const fadeInUp = {
@@ -152,7 +153,7 @@ function About() {
                   whileTap={{ scale: 0.95 }}
                   className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
                 >
-                  Start Recruiting Today
+                  <Link to='/recruiter/signup'>Start Recruiting Today</Link>
                 </motion.button>
               </div>
             </motion.div>
@@ -221,7 +222,7 @@ function About() {
                   whileTap={{ scale: 0.95 }}
                   className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
                 >
-                  Start Your Job Search
+                <Link to='/jobseeker/signup'>Start Your Job Search</Link>
                 </motion.button>
               </div>
             </motion.div>
@@ -319,7 +320,7 @@ function About() {
               whileTap={{ scale: 0.95 }}
               className="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200"
             >
-              Sign Up as Recruiter
+              <Link to='/recruiter/signup'>Sign Up as Recruiter</Link>
             </motion.button>
             <motion.button
               variants={fadeInUp}
@@ -327,7 +328,7 @@ function About() {
               whileTap={{ scale: 0.95 }}
               className="bg-transparent border-2 border-white hover:bg-white hover:text-gray-900 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200"
             >
-              Sign Up as Job Seeker
+             <Link to='/jobseeker/auth'>Sign Up as Job Seeker</Link>
             </motion.button>
           </motion.div>
         </div>

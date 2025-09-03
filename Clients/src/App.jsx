@@ -15,6 +15,7 @@ import Notifications from './Pages/Notifications'
 import FormOptions from './Components/FormOptions'
 import About from './Components/About'
 import Cvscan from './Pages/Cvscan'
+import CvRater from './Pages/CvRater'
 
 function App() {
   const router = createBrowserRouter(createRoutesFromElements(
@@ -49,6 +50,7 @@ function App() {
         <Route index element={<AvailableJob />} />
         <Route path='availableJobs' element={<AvailableJob />} />
         <Route path='notifications' element={<Notifications />} />
+        <Route path='cvRater' element={<CvRater/>} />
       </Route>
     </Route>
   ))
