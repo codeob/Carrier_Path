@@ -12,16 +12,6 @@ const fadeInUp = {
   },
 };
 
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-    },
-  },
-};
-
 const scaleIn = {
   hidden: { scale: 0.8, opacity: 0 },
   visible: {
@@ -83,22 +73,14 @@ function About() {
           </motion.div>
 
           {/* Two Column Layout */}
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16"
-          >
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16">
             {/* For Recruiters */}
             <motion.div
               variants={scaleIn}
-              whileHover={{ rotate: 1 }}
               className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 lg:p-10 hover:shadow-2xl transition-shadow duration-300"
             >
               <div className="text-center mb-8">
                 <motion.div
-                  whileHover={{ scale: 1.1 }}
                   className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
                 >
                   <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,7 +95,7 @@ function About() {
                 </p>
               </div>
 
-              <motion.div variants={staggerContainer} className="space-y-6">
+              <div className="space-y-6">
                 <motion.div variants={fadeInUp} className="flex items-start gap-4">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-3 flex-shrink-0"></div>
                   <div>
@@ -145,7 +127,7 @@ function About() {
                     </p>
                   </div>
                 </motion.div>
-              </motion.div>
+              </div>
 
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <motion.button
@@ -161,12 +143,10 @@ function About() {
             {/* For Job Seekers */}
             <motion.div
               variants={scaleIn}
-              whileHover={{ rotate: -1 }}
               className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 lg:p-10 hover:shadow-2xl transition-shadow duration-300"
             >
               <div className="text-center mb-8">
                 <motion.div
-                  whileHover={{ scale: 1.1 }}
                   className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4"
                 >
                   <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -181,7 +161,7 @@ function About() {
                 </p>
               </div>
 
-              <motion.div variants={staggerContainer} className="space-y-6">
+              <div className="space-y-6">
                 <motion.div variants={fadeInUp} className="flex items-start gap-4">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-3 flex-shrink-0"></div>
                   <div>
@@ -214,7 +194,7 @@ function About() {
                     </p>
                   </div>
                 </motion.div>
-              </motion.div>
+              </div>
 
               <div className="mt-8 pt-6 border-t border-gray-200">
                 <motion.button
@@ -222,18 +202,18 @@ function About() {
                   whileTap={{ scale: 0.95 }}
                   className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
                 >
-                <Link to='/jobseeker/signup'>Start Your Job Search</Link>
+                  <Link to='/jobseeker/signup'>Start Your Job Search</Link>
                 </motion.button>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
 
           {/* Features Section */}
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            variants={staggerContainer}
+            variants={fadeInUp}
             className="mt-16 sm:mt-20"
           >
             <div className="text-center mb-12">
@@ -311,7 +291,7 @@ function About() {
             Join thousands of successful recruiters and job seekers who have found their perfect match through Job Portal.
           </p>
           <motion.div
-            variants={staggerContainer}
+            variants={fadeInUp}
             className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center"
           >
             <motion.button
@@ -328,7 +308,7 @@ function About() {
               whileTap={{ scale: 0.95 }}
               className="bg-transparent border-2 border-white hover:bg-white hover:text-gray-900 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200"
             >
-             <Link to='/jobseeker/auth'>Sign Up as Job Seeker</Link>
+              <Link to='/jobseeker/auth'>Sign Up as Job Seeker</Link>
             </motion.button>
           </motion.div>
         </div>
