@@ -48,17 +48,12 @@ function Footer() {
             <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
               <motion.li variants={fadeInUp}>
-                <a href="/about" className="text-gray-400 hover:text-white transition-colors duration-200">
+                <a href="#about" className="text-gray-400 hover:text-white transition-colors duration-200">
                   About
                 </a>
               </motion.li>
               <motion.li variants={fadeInUp}>
-                <a href="/jobs" className="text-gray-400 hover:text-white transition-colors duration-200">
-                  Jobs
-                </a>
-              </motion.li>
-              <motion.li variants={fadeInUp}>
-                <a href="/contact" className="text-gray-400 hover:text-white transition-colors duration-200">
+                <a href="#contact" className="text-gray-400 hover:text-white transition-colors duration-200">
                   Contact
                 </a>
               </motion.li>

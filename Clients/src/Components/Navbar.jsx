@@ -38,7 +38,7 @@ function Navbar() {
             </button>
 
             <Link to="/" className="text-lg font-semibold">
-              Job Portal
+              Job Portal 
             </Link>
           </div>
 
@@ -47,7 +47,7 @@ function Navbar() {
             <Link to="/" className="hover:text-green-600">Home</Link>
             <a href="#about" className="hover:text-green-600">about</a>
             <Link to="/Cvscan" className="hover:text-green-600">Cv Scan</Link>
-            <Link to="#contact" className="hover:text-green-600">Contact</Link>
+            <a href="#contact" className="hover:text-green-600">Contact</a>
           </nav>
 
           {/* Right: actions */}
@@ -81,10 +81,10 @@ function Navbar() {
       {mobileOpen && (
         <div className="md:hidden border-t border-gray-200 bg-white">
           <nav className="space-y-1 px-4 py-3">
-            <Link onClick={() => setMobileOpen(false)} to="/" className="block rounded-md px-2 py-2 hover:bg-gray-100">Home</Link>
+            <a onClick={() => setMobileOpen(false)} to="/" className="block rounded-md px-2 py-2 hover:bg-gray-100">Home</a>
             <a onClick={() => setMobileOpen(false)} href="#about" className="block rounded-md px-2 py-2 hover:bg-gray-100">About</a>
             <Link onClick={() => setMobileOpen(false)} to="/Cvscan" className="block rounded-md px-2 py-2 hover:bg-gray-100">Cv Scan</Link>
-            <Link onClick={() => setMobileOpen(false)} to="#contact" className="block rounded-md px-2 py-2 hover:bg-gray-100">Contact</Link>
+            <a onClick={() => setMobileOpen(false)} href="#contact" className="block rounded-md px-2 py-2 hover:bg-gray-100">Contact</a>
             <Link
               onClick={() => setMobileOpen(false)}
               to="/form"

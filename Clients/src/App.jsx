@@ -13,7 +13,6 @@ import Analytics from './Pages/Analytics'
 import AvailableJob from './Pages/AvailableJob'
 import Notifications from './Pages/Notifications'
 import FormOptions from './Components/FormOptions'
-import About from './Components/About'
 import Cvscan from './Pages/Cvscan'
 import CvRater from './Pages/CvRater'
 
@@ -21,7 +20,6 @@ function App() {
   const router = createBrowserRouter(createRoutesFromElements(
     <Route path='/'>
       <Route index element={<Home />} />
-      <Route path='/about' element={<About />} />
 
       {/* Auth routes (aliases for consistency across codebase) */}
       <Route path='/recruiter/signup' element={<RecruiterAuth />} />
