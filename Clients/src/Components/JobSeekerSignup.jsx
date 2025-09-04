@@ -25,7 +25,7 @@ const UserAuth = () => {
     setIsLoading(true);
     setErrorMessage('');
     try {
-      const url = isLogin ? 'http://localhost:5040/api/jobseeker/login' : 'http://localhost:5040/api/jobseeker/signup';
+      const url = isLogin ? 'https://carrier-path.onrender.com/api/jobseeker/login' : 'https://carrier-path.onrender.com/api/jobseeker/signup';
       const payload = isLogin
         ? { email: data.email, password: data.password }
         : {

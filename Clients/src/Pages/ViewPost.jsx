@@ -43,7 +43,7 @@ const ViewPost = () => {
       try {
         setIsLoading(true);
         setError('');
-        const response = await axios.get('http://localhost:5040/api/jobs', {
+        const response = await axios.get('https://carrier-path.onrender.com/api/jobs', {
           headers: { Authorization: `Bearer ${token}` },
           params: {
             page: currentPage,
@@ -309,7 +309,7 @@ const ViewPost = () => {
                     <p className="text-xs text-gray-500">{formatPostedTime(job.createdAt)}</p>
                     {job.companyImage && (
                       <img
-                        src={`http://localhost:5040${job.companyImage}`}
+                        src={`https://carrier-path.onrender.com${job.companyImage}`}
                         alt={job.companyName || 'Company Logo'}
                         className="w-16 h-16 object-contain mt-2"
                       />

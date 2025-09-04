@@ -45,7 +45,7 @@ const Analytics = () => {
           return;
         }
 
-        const response = await axios.get('http://localhost:5040/api/analytics', {
+        const response = await axios.get('https://carrier-path.onrender.com/api/analytics', {
           headers: { Authorization: `Bearer ${token}` },
         });
 

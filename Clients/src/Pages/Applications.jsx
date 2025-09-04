@@ -19,7 +19,7 @@ const Applications = () => {
           return;
         }
 
-        const response = await axios.get('http://localhost:5040/api/applications', {
+        const response = await axios.get('https://carrier-path.onrender.com/api/applications', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
@@ -42,7 +42,7 @@ const Applications = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `http://localhost:5040/api/applications/${applicationId}`,
+        `https://carrier-path.onrender.com/api/applications/${applicationId}`,
         { status },
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
@@ -59,7 +59,7 @@ const Applications = () => {
     if (window.confirm('Are you sure you want to delete this application?')) {
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`http://localhost:5040/api/applications/${applicationId}`, {
+        await axios.delete(`https://carrier-path.onrender.com/api/applications/${applicationId}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         setApplications(applications.filter(app => app._id !== applicationId));

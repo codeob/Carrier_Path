@@ -53,7 +53,7 @@ const CreateJob = () => {
         return;
       }
       try {
-        await axios.get('http://localhost:5040/api/recruiter/profile', {
+        await axios.get('https://carrier-path.onrender.com/api/recruiter/profile', {
           headers: { Authorization: `Bearer ${token}` },
         });
       } catch (e) {
@@ -81,7 +81,7 @@ const CreateJob = () => {
         setValue('salary.yearly', jobToEdit.salary?.yearly || '');
         setValue('companyName', jobToEdit.companyName || '');
         if (jobToEdit.companyImage) {
-          setImagePreview(`http://localhost:5040${jobToEdit.companyImage}`);
+          setImagePreview(`https://carrier-path.onrender.com${jobToEdit.companyImage}`);
         }
       }
     };
@@ -149,7 +149,7 @@ const CreateJob = () => {
 
       const response = await axios({
         method: jobToEdit ? 'PUT' : 'POST',
-        url: jobToEdit ? `http://localhost:5040/api/jobs/${jobToEdit._id}` : 'http://localhost:5040/api/jobs',
+        url: jobToEdit ? `https://carrier-path.onrender.com/api/jobs/${jobToEdit._id}` : 'https://carrier-path.onrender.com/api/jobs',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',

@@ -21,8 +21,8 @@ const RecruiterAuth = () => {
     setIsLoading(true);
     try {
       const url = isLogin
-        ? "http://localhost:5040/api/recruiter/login"
-        : "http://localhost:5040/api/recruiter/signup";
+        ? "https://carrier-path.onrender.com/api/recruiter/login"
+        : "https://carrier-path.onrender.com/api/recruiter/signup";
       const response = await axios.post(url, data, {
         headers: { "Content-Type": "application/json" },
       });

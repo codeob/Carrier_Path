@@ -9,7 +9,7 @@ const RecruiterSidebar = ({ isOpen, toggleSidebar }) => {
   const [unreadApplicationCount, setUnreadApplicationCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
-  const BASE_URL = 'http://localhost:5040';
+  const BASE_URL = 'https://carrier-path.onrender.com';
 
   useEffect(() => {
     const fetchProfile = async () => {

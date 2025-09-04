@@ -29,7 +29,7 @@ const JobList = () => {
           search: searchTerm, 
           status: filter === 'all' ? undefined : filter 
         };
-        const response = await axios.get('http://localhost:5040/api/jobs', {
+        const response = await axios.get('https://carrier-path.onrender.com/api/jobs', {
           headers: { 'Authorization': `Bearer ${token}` },
           params,
         });
@@ -49,7 +49,7 @@ const JobList = () => {
     if (!window.confirm('Are you sure you want to delete this job?')) return;
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5040/api/jobs/${jobId}`, {
+      await axios.delete(`https://carrier-path.onrender.com/api/jobs/${jobId}`, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       setJobs(jobs.filter(job => job._id !== jobId));
@@ -81,7 +81,7 @@ const JobList = () => {
         companyImage: job.companyImage || '',
       };
       const response = await axios.put(
-        `http://localhost:5040/api/jobs/${jobId}`,
+        `https://carrier-path.onrender.com/api/jobs/${jobId}`,
         updatedJobData,
         {
           headers: { 'Authorization': `Bearer ${token}` },
@@ -213,7 +213,7 @@ const JobList = () => {
                     <h2 className="text-lg font-semibold text-gray-900">{job.title}</h2>
                     <p className="text-sm text-gray-600">{job.companyName}</p>
                     {job.companyImage && (
-                      <img src={`http://localhost:5040${job.companyImage}`} alt={job.companyName} className="w-16 h-16 object-contain mt-2" />
+                      <img src={`https://carrier-path.onrender.com${job.companyImage}`} alt={job.companyName} className="w-16 h-16 object-contain mt-2" />
                     )}
                   </div>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(job.status)}`}>

@@ -39,7 +39,7 @@ const CvRater = () => {
     formData.append('jobDescription', jobDescription);
 
     try {
-      const response = await fetch('http://localhost:5040/api/cvscanner/scan', {
+      const response = await fetch('https://carrier-path.onrender.com/api/cvscanner/scan', {
         method: 'POST',
         body: formData,
       });

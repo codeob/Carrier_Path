@@ -20,7 +20,7 @@ const Notifications = () => {
           return;
         }
 
-        const response = await axios.get('http://localhost:5040/api/messages', {
+        const response = await axios.get('https://carrier-path.onrender.com/api/messages', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setNotifications(Array.isArray(response.data) ? response.data : []);
@@ -65,7 +65,7 @@ const Notifications = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(
-        `http://localhost:5040/api/messages/${messageId}/read`,
+        `https://carrier-path.onrender.com/api/messages/${messageId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -82,7 +82,7 @@ const Notifications = () => {
       setButtonLoading((prev) => ({ ...prev, [messageId]: 'delete' }));
       try {
         const token = localStorage.getItem('token');
-        await axios.delete(`http://localhost:5040/api/messages/${messageId}`, {
+        await axios.delete(`https://carrier-path.onrender.com/api/messages/${messageId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setNotifications(notifications.filter((msg) => msg._id !== messageId));
@@ -99,7 +99,7 @@ const Notifications = () => {
       setButtonLoading((prev) => ({ ...prev, clearAll: true }));
       try {
         const token = localStorage.getItem('token');
-        await axios.delete('http://localhost:5040/api/messages/clear-all', {
+        await axios.delete('https://carrier-path.onrender.com/api/messages/clear-all', {
           headers: { Authorization: `Bearer ${token}` },
         });
         setNotifications([]);

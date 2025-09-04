@@ -37,7 +37,7 @@ const JobSeekerNavbar = () => {
           navigate('/user/auth');
           return;
         }
-        const response = await axios.get('http://localhost:5040/api/jobseeker/profile', {
+        const response = await axios.get('https://carrier-path.onrender.com/api/jobseeker/profile', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         setUserProfile(response.data.jobSeeker);
@@ -58,7 +58,7 @@ const JobSeekerNavbar = () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
-        const response = await axios.get('http://localhost:5040/api/messages/unread-count', {
+        const response = await axios.get('https://carrier-path.onrender.com/api/messages/unread-count', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         setUnreadNotificationCount(response.data.count || 0);
@@ -79,7 +79,7 @@ const JobSeekerNavbar = () => {
     if (!token) return;
     const interval = setInterval(async () => {
       try {
-        const response = await axios.get('http://localhost:5040/api/messages/unread-count', {
+        const response = await axios.get('https://carrier-path.onrender.com/api/messages/unread-count', {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         setUnreadNotificationCount(response.data.count || 0);
@@ -102,7 +102,7 @@ const JobSeekerNavbar = () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await axios.post('http://localhost:5040/api/jobseeker/logout', {}, {
+        await axios.post('https://carrier-path.onrender.com/api/jobseeker/logout', {}, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
       }

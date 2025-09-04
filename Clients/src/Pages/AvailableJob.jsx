@@ -60,7 +60,7 @@ const Available = () => {
           sortBy,
           sortOrder,
         };
-        const response = await axios.get('http://localhost:5040/api/jobs/public', { params });
+        const response = await axios.get('https://carrier-path.onrender.com/api/jobs/public', { params });
         const fetchedJobs = Array.isArray(response.data.jobs || response.data.data || response.data)
           ? (response.data.jobs || response.data.data || response.data)
           : [];
@@ -112,7 +112,7 @@ const Available = () => {
       formData.append('resume', data.resume[0]);
       if (data.portfolioLink) formData.append('portfolioLink', data.portfolioLink);
       if (data.githubLink) formData.append('githubLink', data.githubLink);
-      const response = await axios.post('http://localhost:5040/api/applications', formData, {
+      const response = await axios.post('https://carrier-path.onrender.com/api/applications', formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -389,7 +389,7 @@ const Available = () => {
                     <p className="text-xs text-gray-500">{formatPostedTime(job.createdAt)}</p>
                     {job.companyImage && (
                       <img
-                        src={`http://localhost:5040${job.companyImage}`}
+                        src={`https://carrier-path.onrender.com${job.companyImage}`}
                         alt={job.companyName || 'Company Logo'}
                         className="w-16 h-16 object-contain mt-2"
                       />
