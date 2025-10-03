@@ -1,5 +1,7 @@
 const Application = require('../Models/ApplicationModel');
 const Job = require('../Models/JobModel');
+const Message = require('../Models/MessageModel');
+const Recruiter = require('../Models/RecruiterModel');
 
 // Create a new application (Job Seeker)
 exports.createApplication = async (req, res) => {
@@ -82,8 +84,30 @@ exports.updateApplication = async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized to update this application' });
     }
 
+    const prevStatus = application.status;
     application.status = status;
     await application.save();
+
+    // Notify the job seeker when their application is accepted
+    if (status === 'accepted' && prevStatus !== 'accepted') {
+      try {
+        const recruiterId = req.recruiter?.recruiterId;
+        const recruiter = await Recruiter.findById(recruiterId).select('name company');
+        if (recruiter) {
+          await Message.create({
+            sender: recruiterId,
+            senderModel: 'Recruiter',
+            recipient: application.userId,
+            recipientModel: 'JobSeeker',
+            job: application.jobId._id || application.jobId,
+            content: `Your application for ${application.jobId.title} was accepted by ${recruiter.name} at ${recruiter.company}.`,
+            sentAt: new Date(),
+          });
+        }
+      } catch (notifyErr) {
+        console.error('Failed to send acceptance notification:', notifyErr);
+      }
+    }
 
     const updatedApplication = await Application.findById(id)
       .populate('jobId', 'title jobType employmentType companyName companyImage')

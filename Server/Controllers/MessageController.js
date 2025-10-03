@@ -14,7 +14,7 @@ exports.getMessages = async (req, res) => {
       recipientModel: model,
     })
       .populate('job', 'title location createdAt')
-      .populate('sender', 'name')
+      .populate('sender', 'name company')
       .sort({ sentAt: -1 });
     // Log number of messages fetched
     console.log('Fetched messages:', messages.length);
@@ -56,10 +56,14 @@ exports.markMessageAsRead = async (req, res) => {
     message.read = true;
     // Save the updated message
     await message.save();
+    // Populate fields for consistent client rendering
+    const populated = await Message.findById(message._id)
+      .populate('job', 'title location createdAt')
+      .populate('sender', 'name company');
     // Log success
     console.log('Marked message as read:', id);
     // Send response with updated message
-    res.json(message);
+    res.json(populated);
   } catch (error) {
     // Log any errors
     console.error('Mark message as read error:', {

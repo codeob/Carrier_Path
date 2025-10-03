@@ -190,7 +190,11 @@ const Notifications = () => {
                       </div>
                     )}
                     <p className="text-gray-600 text-sm">
-                      From: {notification.senderModel === 'System' ? 'System' : notification.sender?.name || 'Unknown'}
+                      From: {notification.senderModel === 'System'
+                        ? 'System'
+                        : notification.senderModel === 'Recruiter'
+                          ? `${notification.sender?.name || 'Unknown'}${notification.sender?.company ? ' (' + notification.sender.company + ')' : ''}`
+                          : notification.sender?.name || 'Unknown'}
                     </p>
                     <p className="text-gray-500 text-sm">{formatTimestamp(notification.sentAt)}</p>
                   </div>
