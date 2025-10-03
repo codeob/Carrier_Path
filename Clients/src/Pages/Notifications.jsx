@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -10,7 +10,7 @@ const Notifications = () => {
   const [error, setError] = useState('');
   const [buttonLoading, setButtonLoading] = useState({});
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem('token');
@@ -32,11 +32,11 @@ const Notifications = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     fetchNotifications();
-  }, [navigate]);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     if (error) {

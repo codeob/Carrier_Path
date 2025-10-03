@@ -242,6 +242,12 @@ const Applications = () => {
                       </a>
                     </div>
                   )}
+                  {app.ats && app.ats.overallScore !== null && (
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <span className="text-gray-400 text-sm">📊</span>
+                      <span className="text-sm font-medium">ATS Score: {app.ats.overallScore}%</span>
+                    </div>
+                  )}
                   {app.message && (
                     <div>
                       <h3 className="text-sm font-medium text-gray-900">Cover Letter</h3>

@@ -384,25 +384,16 @@ async function scanCv(cvBuffer, cvMimetype, jobDescription) {
     if (overallScore >= 79) {
       feedback.push({
         section: 'Overall',
-        message: `Excellent alignment. Your CV achieved a strong ${overallScore}% match for the ${role} role. Clear structure, strong keyword presence, and good readability will help you stand out.`,
+        message: `Congratulations! Your CV achieved a strong ${overallScore}% match for the ${role} role. You are qualified and should apply to this job with confidence. Prepare hard for the interview by reviewing the job description and practicing common questions.`,
       });
       solutions.push({
-        section: 'Maintain Strengths',
-        message: `Keep measurable outcomes in bullets (e.g., increased efficiency by 20%), ensure recent experience highlights the most relevant ${role} tools (e.g., ${(roleMeta.tools || []).slice(0, 3).join(', ')}), and continue using ATS-friendly formatting (Arial/Times New Roman 10–12pt, no tables/graphics in core sections).`
-      });
-    } else if (overallScore >= 60) {
-      feedback.push({
-        section: 'Overall',
-        message: `Moderate alignment. Your CV scored ${overallScore}% for the ${role} role. You have a foundation but need targeted improvements to increase match and ATS compatibility.`,
-      });
-      solutions.push({
-        section: 'Targeted Improvements',
-        message: `Increase keyword alignment by naturally adding missing terms in context (e.g., under Work Experience). Focus on ${missingKeywords.slice(0, 5).join(', ') || 'role-specific skills'}. Ensure all standard sections are present and that bullets emphasize quantifiable outcomes.`
+        section: 'Next Steps',
+        message: `Apply now and prepare thoroughly for the interview. Focus on articulating your achievements with measurable results (e.g., increased efficiency by 20%). Ensure your recent experience highlights the most relevant ${role} tools (e.g., ${(roleMeta.tools || []).slice(0, 3).join(', ')}), and maintain ATS-friendly formatting (Arial/Times New Roman 10–12pt, no tables/graphics in core sections).`
       });
     } else {
       feedback.push({
         section: 'Overall',
-        message: `Low alignment. Your CV scored ${overallScore}% for the ${role} role. Significant improvements are needed to pass strict ATS filters.`,
+        message: `Your CV scored ${overallScore}% for the ${role} role. You are not yet qualified for this position. Targeted improvements are needed to increase your match and ATS compatibility.`,
       });
       const missingSectionsList = Object.entries(sectionsMap)
         .filter(([_, present]) => !present)
@@ -411,8 +402,8 @@ async function scanCv(cvBuffer, cvMimetype, jobDescription) {
         ? `Add missing sections: ${missingSectionsList.join(', ').replace(/\b\w/g, (c) => c.toUpperCase())}. `
         : '';
       solutions.push({
-        section: 'Action Plan',
-        message: `${missingSectionsAdvice}Incorporate relevant keywords such as ${missingKeywords.slice(0, 8).join(', ') || 'keywords from the job description'} under Skills and in bullet points describing your impact (e.g., “reduced cost by 15%”). Use ATS-friendly formatting (Arial 10–12pt, no tables/graphics in core sections), and ensure bullets are concise (<18 words).`
+        section: 'Targeted Improvements',
+        message: `${missingSectionsAdvice}Incorporate relevant keywords such as ${missingKeywords.slice(0, 8).join(', ') || 'keywords from the job description'} under Skills and in bullet points describing your impact (e.g., "reduced cost by 15%"). Use ATS-friendly formatting (Arial 10–12pt, no tables/graphics in core sections), and ensure bullets are concise (<18 words).`
       });
     }
 

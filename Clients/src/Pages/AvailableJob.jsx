@@ -11,7 +11,6 @@ const Available = () => {
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     jobType: '',
@@ -46,7 +45,6 @@ const Available = () => {
     const fetchJobs = async () => {
       try {
         setIsLoading(true);
-        setError('');
         const params = {
           page: currentPage,
           limit: jobsPerPage,
@@ -68,7 +66,6 @@ const Available = () => {
         setTotalPages(response.data.totalPages || Math.ceil(fetchedJobs.length / jobsPerPage));
       } catch (err) {
         console.error('Error fetching jobs:', err);
-        setError(err.response?.data?.message || 'Failed to load jobs. Please try again.');
         setJobs([]);
       } finally {
         setIsLoading(false);

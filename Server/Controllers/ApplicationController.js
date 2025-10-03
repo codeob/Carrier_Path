@@ -100,7 +100,7 @@ exports.createApplication = async (req, res) => {
 
           // Strict thresholds and notifications
           const qualifiedMin = 79;
-          const autoRejectMax = 60;
+          const autoRejectMax = 61;
           const score = application.ats.overallScore || 0;
           application.standout = score >= qualifiedMin;
 

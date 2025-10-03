@@ -8,7 +8,6 @@ const ViewPost = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
   const [filters, setFilters] = useState({
     search: '',
     jobType: '',
@@ -42,7 +41,6 @@ const ViewPost = () => {
 
       try {
         setIsLoading(true);
-        setError('');
         const response = await axios.get('https://carrier-path.onrender.com/api/jobs', {
           headers: { Authorization: `Bearer ${token}` },
           params: {
@@ -66,7 +64,6 @@ const ViewPost = () => {
         setJobs(fetchedJobs);
         setTotalPages(response.data.totalPages || Math.ceil(fetchedJobs.length / jobsPerPage));
       } catch (error) {
-        setError(error.response?.data?.message || 'Failed to load jobs.');
         setJobs([]);
         if (error.response?.status === 401) {
           navigate('/recruiter/auth');

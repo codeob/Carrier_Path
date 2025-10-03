@@ -94,7 +94,7 @@ const JobSeekerNavbar = () => {
       }
     }, 60000); // poll every 60 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [navigate]);
 
   const handleLogout = useCallback(async () => {
     const confirmLogout = window.confirm('Are you sure you want to logout?');
