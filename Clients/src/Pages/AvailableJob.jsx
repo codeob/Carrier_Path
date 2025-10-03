@@ -66,9 +66,9 @@ const Available = () => {
           : [];
         setJobs(fetchedJobs);
         setTotalPages(response.data.totalPages || Math.ceil(fetchedJobs.length / jobsPerPage));
-      } catch (error) {
-        console.error('Error fetching jobs:', error);
-        setError(error.response?.data?.message || 'Failed to load jobs. Please try again.');
+      } catch (err) {
+        console.error('Error fetching jobs:', err);
+        setError(err.response?.data?.message || 'Failed to load jobs. Please try again.');
         setJobs([]);
       } finally {
         setIsLoading(false);

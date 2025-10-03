@@ -30,7 +30,7 @@ const Analytics = () => {
   useEffect(() => {
     try {
       ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
-    } catch (_) {
+    } catch {
       // ignore duplicate registrations
     }
   }, []);

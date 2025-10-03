@@ -10,31 +10,31 @@ const Notifications = () => {
   const [error, setError] = useState('');
   const [buttonLoading, setButtonLoading] = useState({});
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        setIsLoading(true);
-        const token = localStorage.getItem('token');
-        if (!token) {
-          navigate('/user/signup');
-          return;
-        }
-
-        const response = await axios.get('https://carrier-path.onrender.com/api/messages', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setNotifications(Array.isArray(response.data) ? response.data : []);
-      } catch (error) {
-        const errorMsg = error.response?.data?.message || 'Failed to load notifications.';
-        setError(errorMsg);
-        if (error.response?.status === 401) {
-          navigate('/user/signup');
-        }
-      } finally {
-        setIsLoading(false);
+  const fetchNotifications = async () => {
+    try {
+      setIsLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/user/signup');
+        return;
       }
-    };
 
+      const response = await axios.get('https://carrier-path.onrender.com/api/messages', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      const errorMsg = error.response?.data?.message || 'Failed to load notifications.';
+      setError(errorMsg);
+      if (error.response?.status === 401) {
+        navigate('/user/signup');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchNotifications();
   }, [navigate]);
 
@@ -120,19 +120,32 @@ const Notifications = () => {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Notifications</h1>
               <p className="text-gray-600">Stay updated on new job postings and application statuses</p>
             </div>
-            {notifications.length > 0 && (
+            <div className="flex gap-2">
               <button
-                onClick={handleClearAllNotifications}
-                className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
-                disabled={buttonLoading.clearAll}
+                onClick={fetchNotifications}
+                className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                disabled={isLoading}
               >
-                {buttonLoading.clearAll ? (
-                  <span className="animate-spin h-5 w-5 border-2 border-t-red-700 rounded-full"></span>
+                {isLoading ? (
+                  <span className="animate-spin h-5 w-5 border-2 border-t-blue-700 rounded-full"></span>
                 ) : (
-                  '🗑️ Clear All'
+                  '🔄 Refresh'
                 )}
               </button>
-            )}
+              {notifications.length > 0 && (
+                <button
+                  onClick={handleClearAllNotifications}
+                  className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+                  disabled={buttonLoading.clearAll}
+                >
+                  {buttonLoading.clearAll ? (
+                    <span className="animate-spin h-5 w-5 border-2 border-t-red-700 rounded-full"></span>
+                  ) : (
+                    '🗑️ Clear All'
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

@@ -147,7 +147,7 @@ const CreateJob = () => {
         formData.append('status', jobToEdit.status);
       }
 
-      const response = await axios({
+      await axios({
         method: jobToEdit ? 'PUT' : 'POST',
         url: jobToEdit ? `https://carrier-path.onrender.com/api/jobs/${jobToEdit._id}` : 'https://carrier-path.onrender.com/api/jobs',
         headers: {

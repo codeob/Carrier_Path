@@ -65,10 +65,10 @@ const ViewPost = () => {
           : [];
         setJobs(fetchedJobs);
         setTotalPages(response.data.totalPages || Math.ceil(fetchedJobs.length / jobsPerPage));
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to load jobs.');
+      } catch (error) {
+        setError(error.response?.data?.message || 'Failed to load jobs.');
         setJobs([]);
-        if (err.response?.status === 401) {
+        if (error.response?.status === 401) {
           navigate('/recruiter/auth');
         }
       } finally {
