@@ -184,19 +184,38 @@ exports.updateApplication = async (req, res) => {
       } catch (notifyErr) {
         console.error('Failed to send acceptance notification:', notifyErr);
       }
-    } else if (status === 'rejected' && prevStatus !== 'rejected') {
+    } else if (status === 'rejected') {
       try {
         const recruiterId = req.recruiter?.recruiterId;
-        const recruiter = await Recruiter.findById(recruiterId).select('name company');
-        await Message.create({
-          sender: recruiterId,
-          senderModel: 'Recruiter',
+        const recruiter = recruiterId ? await Recruiter.findById(recruiterId).select('name company') : null;
+
+        // Avoid duplicate notifications: check if a recent rejection notification already exists
+        const existingMsg = await Message.findOne({
           recipient: application.userId,
           recipientModel: 'JobSeeker',
           job: application.jobId._id || application.jobId,
-          content: `Your application for ${application.jobId.title} was rejected by ${recruiter?.name || 'the recruiter'} at ${recruiter?.company || application.jobId.companyName}.`,
-          sentAt: new Date(),
-        });
+          content: /was rejected/i,
+        }).sort({ sentAt: -1 });
+
+        if (!existingMsg) {
+          const messagePayload = {
+            recipient: application.userId,
+            recipientModel: 'JobSeeker',
+            content: `Your application for ${application.jobId.title} was rejected by ${recruiter?.name || 'the recruiter'} at ${recruiter?.company || application.jobId.companyName}.`,
+            sentAt: new Date(),
+          };
+
+          if (recruiter) {
+            messagePayload.sender = recruiterId;
+            messagePayload.senderModel = 'Recruiter';
+            messagePayload.job = application.jobId._id || application.jobId;
+          } else {
+            // Fallback to System sender to guarantee delivery if recruiter context is missing
+            messagePayload.senderModel = 'System';
+          }
+
+          await Message.create(messagePayload);
+        }
       } catch (notifyErr) {
         console.error('Failed to send rejection notification:', notifyErr);
       }
