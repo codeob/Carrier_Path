@@ -42,6 +42,18 @@ const applicationSchema = new mongoose.Schema({
     enum: ['pending', 'accepted', 'rejected'],
     default: 'pending',
   },
+  // ATS scanning results and standout flag
+  ats: {
+    overallScore: { type: Number, default: null },
+    keywordMatch: { type: Number, default: null },
+    structureScore: { type: Number, default: null },
+    readabilityScore: { type: Number, default: null },
+    standOutPoints: { type: [String], default: [] },
+  },
+  standout: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

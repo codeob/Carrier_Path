@@ -8,6 +8,7 @@ const Applications = () => {
   const [applications, setApplications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -86,8 +87,40 @@ const Applications = () => {
     <div className="min-h-screen px-4 sm:px-6 lg:px-8 py-6 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="p-4 sm:p-6 mb-6 border border-gray-200 rounded-lg bg-white">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Applications</h1>
-          <p className="text-gray-600">Manage applications for your job postings</p>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Applications</h1>
+              <p className="text-gray-600">Manage applications for your job postings</p>
+            </div>
+            {applications.length > 0 && (
+              <button
+                onClick={async () => {
+                  if (!window.confirm('Delete ALL applications for your jobs? This cannot be undone.')) return;
+                  try {
+                    setBulkDeleting(true);
+                    const token = localStorage.getItem('token');
+                    await axios.delete('https://carrier-path.onrender.com/api/applications/clear-all', {
+                      headers: { 'Authorization': `Bearer ${token}` },
+                    });
+                    setApplications([]);
+                  } catch (err) {
+                    console.error('Error clearing applications:', err);
+                    setError(err.response?.data?.message || 'Failed to delete all applications.');
+                  } finally {
+                    setBulkDeleting(false);
+                  }
+                }}
+                disabled={bulkDeleting}
+                className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2 disabled:opacity-50"
+              >
+                {bulkDeleting ? (
+                  <span className="animate-spin h-5 w-5 border-2 border-t-red-700 rounded-full"></span>
+                ) : (
+                  '🗑️ Delete All'
+                )}
+              </button>
+            )}
+          </div>
         </div>
 
         {isLoading && (
@@ -216,35 +249,37 @@ const Applications = () => {
                     </div>
                   )}
                 </div>
-                {app.status === 'pending' && (
-                  <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
-                    <button
-                      onClick={() => handleStatusChange(app._id, 'accepted')}
-                      className="bg-green-50 hover:bg-green-100 text-green-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
-                    >
-                      ✅ Accept
-                    </button>
-                    <button
-                      onClick={() => handleStatusChange(app._id, 'rejected')}
-                      className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
-                    >
-                      ❌ Reject
-                    </button>
-                    <button
-                      onClick={() => handleStatusChange(app._id, 'pending')}
-                      className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
-                      disabled={app.status === 'pending'}
-                    >
-                      ⏳ Pending
-                    </button>
-                    <button
-                      onClick={() => handleDelete(app._id)}
-                      className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
-                    >
-                      🗑️ Delete
-                    </button>
-                  </div>
-                )}
+                <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
+                  {app.status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => handleStatusChange(app._id, 'accepted')}
+                        className="bg-green-50 hover:bg-green-100 text-green-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
+                      >
+                        ✅ Accept
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(app._id, 'rejected')}
+                        className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
+                      >
+                        ❌ Reject
+                      </button>
+                      <button
+                        onClick={() => handleStatusChange(app._id, 'pending')}
+                        className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
+                        disabled={app.status === 'pending'}
+                      >
+                        ⏳ Pending
+                      </button>
+                    </>
+                  )}
+                  <button
+                    onClick={() => handleDelete(app._id)}
+                    className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>

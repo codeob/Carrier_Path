@@ -1,86 +1,270 @@
-// cvscanner.js
-// Implements ATS-like scanning for tech industry CVs.
-// Parses CV files, analyzes structure, keywords, and readability, and provides detailed feedback.
+// cvScanner.js
+// Strict ATS-style CV scanner aligned with a comprehensive job categories database.
+// Parses PDF/DOCX resumes, detects structure, matches role-specific keywords/skills/tools
+// against job descriptions and a curated role catalog, then produces strict scores and
+// role-tailored guidance for ATS consumption.
 
 const pdf = require('pdf-parse');
 const mammoth = require('mammoth');
 
-// Tech industry skills by job category
-const techSkillsByCategory = {
+// Roles catalog: condensed but broad coverage across global categories (1–16)
+// Each role contains meta fields and representative keywords/tools/skills/qualifications.
+// This structure is designed to be extended with additional roles over time.
+const rolesCatalog = {
+  // 1. Technology & IT
+  'Software Developer / Engineer': {
+    roleDescription: 'Designs, codes, tests, and maintains software applications across web, desktop, or enterprise systems with agile collaboration and DevOps integration.',
+    keyPoints: 'Quantify impact (e.g., reduced load time by 40%), link GitHub/portfolio, highlight remote collaboration and open-source contributions.',
+    keywords: ['software development','coding','programming','debugging','agile','scrum','version control','api integration','oop','sdlc','refactoring','unit testing','ci/cd','microservices','rest','graphql','sql','nosql','javascript','typescript','python','java','c#','.net'],
+    tools: ['VS Code','IntelliJ IDEA','Eclipse','Git','GitHub','GitLab','Bitbucket','Jest','JUnit','Selenium','Postman','Maven','Gradle','Jenkins','MySQL','PostgreSQL','MongoDB','AWS','Azure','Docker','Kubernetes'],
+    qualifications: 'BS in CS/SE/IT; certifications like OCJP, Azure Developer Associate, AWS Developer Associate, ISTQB Foundation, CSD.',
+    hardSkills: ['Algorithms','Data Structures','Software Architecture','Database Design','API Development','Containerization','Orchestration','Cloud Deployment','Secure Coding (OWASP)'],
+    softSkills: ['Problem-Solving','Team Collaboration','Communication','Time Management','Adaptability']
+  },
   'Frontend Developer': {
-    hardSkills: [
-      'JavaScript', 'TypeScript', 'React', 'Vue.js', 'Angular', 'HTML', 'CSS',
-      'TailwindCSS', 'Bootstrap', 'SASS', 'LESS', 'Webpack', 'Vite', 'Redux',
-      'Next.js', 'Gatsby', 'GraphQL', 'Apollo', 'Jest', 'Cypress', 'React Testing Library',
-      'ES6', 'Babel', 'jQuery', 'Responsive Design', 'Web Accessibility'
-    ],
-    softSkills: [
-      'Problem-Solving', 'Team Collaboration', 'Communication', 'Attention to Detail',
-      'Creativity', 'Time Management', 'Adaptability'
-    ]
+    roleDescription: 'Builds responsive, accessible user interfaces with modern JS frameworks and close UI/UX collaboration.',
+    keyPoints: 'Show live demos, quantify UX impact, include A/B testing experience and accessibility (WCAG).',
+    keywords: ['frontend','ui/ux','html5','css3','javascript','react','angular','vue','responsive design','bootstrap','tailwind','sass','less','webpack','babel','pwa','dom','redux','typescript','seo','accessibility'],
+    tools: ['React','Next.js','Gatsby','Vite','Jest','Cypress','Figma','Adobe XD','Lighthouse'],
+    qualifications: 'BSc in Web Dev/Design/CS; Google UX, freeCodeCamp Responsive Web Design, W3C Accessibility.',
+    hardSkills: ['Component Architecture','CSS Grid/Flexbox','ES6+','API Consumption','Performance Auditing','SSR','Design Systems'],
+    softSkills: ['User Empathy','Creativity','Communication','Attention to Detail']
   },
   'Backend Developer': {
-    hardSkills: [
-      'Node.js', 'Express.js', 'Python', 'Django', 'Flask', 'Java', 'Spring',
-      'Ruby', 'Rails', 'PHP', 'Laravel', 'SQL', 'MySQL', 'PostgreSQL', 'MongoDB',
-      'Redis', 'GraphQL', 'REST API', 'gRPC', 'Docker', 'Kubernetes', 'AWS',
-      'Azure', 'GCP', 'Microservices', 'CI/CD', 'Jenkins'
-    ],
-    softSkills: [
-      'Problem-Solving', 'Analytical Thinking', 'Teamwork', 'Communication',
-      'Attention to Detail', 'Time Management'
-    ]
+    roleDescription: 'Develops server-side logic, APIs, and databases for secure, scalable systems.',
+    keyPoints: 'Emphasize scalability/security, DB optimization, and reliability in high-traffic contexts.',
+    keywords: ['backend','server-side','node.js','express','django','flask','spring boot','laravel','authentication','jwt','oauth','sql','orm','redis','queues','microservices','rest','graphql','serverless','logging','elk'],
+    tools: ['Node.js','Express','Django','Spring Boot','Laravel','PostgreSQL','MySQL','MongoDB','Redis','RabbitMQ','Nginx','Apache','ELK','AWS Lambda'],
+    qualifications: 'BS in CS/IS; AWS/GCP/Azure certs; CKA; Security+.',
+    hardSkills: ['Query Optimization','Sharding','Event-Driven Architecture','gRPC','WebSockets','ACID Transactions','Rate Limiting','Encryption (AES)'],
+    softSkills: ['Analytical Thinking','Documentation','Stakeholder Alignment']
   },
-  'Full Stack Developer': {
-    hardSkills: [
-      'JavaScript', 'TypeScript', 'React', 'Vue.js', 'Angular', 'Node.js', 'Express.js',
-      'Python', 'Django', 'Flask', 'Java', 'Spring', 'SQL', 'NoSQL', 'MongoDB',
-      'PostgreSQL', 'AWS', 'Azure', 'Docker', 'Kubernetes', 'GraphQL', 'REST API',
-      'Next.js', 'HTML', 'CSS', 'TailwindCSS', 'Jest', 'Cypress'
-    ],
-    softSkills: [
-      'Problem-Solving', 'Team Collaboration', 'Communication', 'Adaptability',
-      'Time Management', 'Leadership'
-    ]
+  'Full-Stack Developer': {
+    roleDescription: 'End-to-end development across frontend and backend, with deployment and feedback loops.',
+    keyPoints: 'Demonstrate full-cycle projects (e.g., MERN), balance FE/BE metrics, show DevOps fundamentals.',
+    keywords: ['full stack','mern','mean','frontend','backend','database','deployment','integration testing','cloud-native'],
+    tools: ['React','Node.js','Express','MongoDB','PostgreSQL','Docker','Kubernetes','Vercel','Netlify'],
+    qualifications: 'BS CS or Full-Stack Diploma; IBM Full Stack Developer, Udacity Full-Stack.',
+    hardSkills: ['Full SDLC','E2E Testing','CI/CD Pipelines','Monorepos','Jamstack'],
+    softSkills: ['Holistic Thinking','Multitasking']
   },
   'DevOps Engineer': {
-    hardSkills: [
-      'AWS', 'Azure', 'GCP', 'Docker', 'Kubernetes', 'Terraform', 'Ansible',
-      'Jenkins', 'Git', 'CI/CD', 'Linux', 'Bash', 'Python', 'Prometheus',
-      'Grafana', 'ELK Stack', 'Nginx', 'Apache', 'CloudFormation'
-    ],
-    softSkills: [
-      'Problem-Solving', 'Collaboration', 'Communication', 'Analytical Thinking',
-      'Attention to Detail'
-    ]
+    roleDescription: 'Automates infrastructure and CI/CD pipelines, ensuring observability and reliability.',
+    keyPoints: 'Highlight deployment acceleration, IaC, and GitOps practices with measurable outcomes.',
+    keywords: ['devops','ci/cd','terraform','ansible','docker','kubernetes','linux','bash','prometheus','grafana','nginx','sre','gitops'],
+    tools: ['Jenkins','GitHub Actions','Terraform','Ansible','Docker','Kubernetes','Prometheus','Grafana','ArgoCD'],
+    qualifications: 'AWS DevOps Engineer, Kubernetes CKA.',
+    hardSkills: ['Blue-Green Deploys','Chaos Engineering','Observability','FinOps'],
+    softSkills: ['Automation Mindset','Collaboration']
   },
   'Data Scientist': {
-    hardSkills: [
-      'Python', 'R', 'SQL', 'Pandas', 'NumPy', 'TensorFlow', 'PyTorch', 'Scikit-learn',
-      'Jupyter', 'Hadoop', 'Spark', 'Tableau', 'Power BI', 'Statistics', 'Machine Learning',
-      'Deep Learning', 'Data Visualization', 'Big Data'
-    ],
-    softSkills: [
-      'Analytical Thinking', 'Problem-Solving', 'Communication', 'Attention to Detail',
-      'Critical Thinking'
-    ]
+    roleDescription: 'Builds ML/statistical models to derive insights and predictions from data.',
+    keyPoints: 'Showcase model impact (e.g., forecast accuracy), include reproducible notebooks.',
+    keywords: ['data science','python','r','pandas','numpy','sklearn','tensorflow','pytorch','sql','tableau','power bi','hadoop','spark','statistics','a/b testing'],
+    tools: ['Jupyter','Scikit-learn','TensorFlow','PyTorch','Tableau','Spark'],
+    qualifications: 'MS Data Science/Stats; Google Data Analytics; Azure Data Scientist.',
+    hardSkills: ['Regression/Classification','Feature Engineering','Time-Series','NLP Basics'],
+    softSkills: ['Storytelling','Critical Thinking']
+  },
+
+  // 2. Healthcare & Medical
+  'General Practitioner (GP)': {
+    roleDescription: 'Primary care physician diagnosing common illnesses and managing chronic conditions.',
+    keyPoints: 'Emphasize patient outcomes and cultural competency; include telemedicine experience.',
+    keywords: ['primary care','diagnosis','preventive medicine','ehr','telemedicine','chronic disease','vaccinations'],
+    tools: ['Epic','Cerner','OpenEMR'],
+    qualifications: 'MD/DO/MBBS; Board Certified Family Medicine (ABFM); ACLS/BLS.',
+    hardSkills: ['Differential Diagnosis','Pharmacology','Screenings'],
+    softSkills: ['Empathy','Holistic Care']
+  },
+  'Registered Nurse (RN)': {
+    roleDescription: 'Direct patient care, medication administration, vitals monitoring across shifts.',
+    keyPoints: 'Quantify patient load and outcomes; highlight shift flexibility.',
+    keywords: ['nursing','patient care','iv therapy','wound care','vital signs','medication administration','triage','telemetry'],
+    tools: ['Epic','Cerner'],
+    qualifications: 'ADN/BSN; NCLEX-RN; ACLS.',
+    hardSkills: ['Catheter Insertion','Triage'],
+    softSkills: ['Compassion','Teamwork']
+  },
+
+  // 5. Finance, Banking & Accounting
+  'Accountant': {
+    roleDescription: 'Prepares financial statements, tax returns, and ensures compliance with GAAP/IFRS.',
+    keyPoints: 'Demonstrate zero discrepancies and on-time filings; showcase automation with Excel.',
+    keywords: ['accounting','gaap','ifrs','financial reporting','reconciliation','tax preparation','audit'],
+    tools: ['QuickBooks','Xero','Excel','DBeaver'],
+    qualifications: 'BAcc; CPA/ACCA.',
+    hardSkills: ['Journal Entries','Depreciation','Variance Analysis'],
+    softSkills: ['Attention to Detail','Integrity']
+  },
+  'Financial Analyst': {
+    roleDescription: 'Builds financial models and forecasts for decision support.',
+    keyPoints: 'Highlight forecast accuracy and ROI of recommendations.',
+    keywords: ['financial analysis','excel modeling','dcf','budgeting','variance analysis','fp&a'],
+    tools: ['Excel','Tableau','Power BI'],
+    qualifications: 'BFin; CFA L1+.',
+    hardSkills: ['Ratio Analysis','Scenario Modeling'],
+    softSkills: ['Communication','Insight Synthesis']
+  },
+
+  // 6. Business, Management & Administration
+  'Business Analyst': {
+    roleDescription: 'Bridges business needs and IT solutions through requirements and process modeling.',
+    keyPoints: 'Document on-time requirements delivery; showcase BPMN/UML artifacts.',
+    keywords: ['business analysis','requirements','uml','bpmn','stakeholder','user stories','acceptance criteria'],
+    tools: ['Jira','Confluence','Visio','Lucidchart'],
+    qualifications: 'BSBA; CBAP/PMI-PBA.',
+    hardSkills: ['Use Case Writing','Process Mapping'],
+    softSkills: ['Elicitation','Facilitation']
+  },
+  'Product Manager': {
+    roleDescription: 'Defines product vision and roadmaps, drives cross-functional delivery.',
+    keyPoints: 'Show product growth metrics and outcomes; map roadmap to KPIs.',
+    keywords: ['product management','roadmap','user stories','mvp','market research','kpis'],
+    tools: ['Jira','Aha!','Productboard'],
+    qualifications: 'BS; CSPO.',
+    hardSkills: ['Prioritization','Discovery'],
+    softSkills: ['Stakeholder Management','Strategic Thinking']
+  },
+  'Project Manager': {
+    roleDescription: 'Leads projects to on-time, on-budget completion using agile/waterfall methods.',
+    keyPoints: 'Quantify on-time delivery and budget adherence; risk mitigation examples.',
+    keywords: ['project management','pmbok','gantt','risk register','agile','waterfall','stakeholder'],
+    tools: ['MS Project','Asana','Trello'],
+    qualifications: 'PMP/PRINCE2.',
+    hardSkills: ['Critical Path','Risk Management'],
+    softSkills: ['Leadership','Conflict Resolution']
+  },
+
+  // 7. Sales, Marketing & Customer Service
+  'Sales Executive': {
+    roleDescription: 'Executes sales cycles to hit quotas, manages pipeline and negotiations.',
+    keyPoints: 'Highlight quota attainment and deal sizes; outline verticals.',
+    keywords: ['sales','pipeline','crm','negotiation','cold calling','prospecting','closing'],
+    tools: ['Salesforce','HubSpot'],
+    qualifications: 'BBus; CPSP.',
+    hardSkills: ['Objection Handling','Contracting'],
+    softSkills: ['Persuasion','Resilience']
+  },
+  'Digital Marketing Specialist': {
+    roleDescription: 'Grows traffic/leads via SEO/PPC and content marketing.',
+    keyPoints: 'Share traffic/lead growth metrics; A/B test results.',
+    keywords: ['digital marketing','seo','ppc','content marketing','google ads','analytics','sem'],
+    tools: ['SEMrush','Google Analytics','Ahrefs'],
+    qualifications: 'BS Marketing; Google Ads.',
+    hardSkills: ['Keyword Research','Campaign Optimization'],
+    softSkills: ['Trend Spotting','Copy Collaboration']
+  },
+
+  // 8. Law, Legal & Security
+  'Lawyer / Attorney': {
+    roleDescription: 'Represents clients, drafts legal documents, and litigates cases.',
+    keyPoints: 'Include case outcomes and specialties; demonstrate research and writing.',
+    keywords: ['litigation','contracts','discovery','depositions','legal research','ip','immigration'],
+    tools: ['Westlaw','LexisNexis'],
+    qualifications: 'JD/LLB; Bar Admission.',
+    hardSkills: ['Brief Writing','Contract Drafting'],
+    softSkills: ['Advocacy','Negotiation']
+  },
+
+  // 9. Creative Arts, Media & Design
+  'Graphic Designer': {
+    roleDescription: 'Creates visual content for brands across digital and print.',
+    keyPoints: 'Show portfolio and conversion results; maintain brand consistency.',
+    keywords: ['graphic design','illustrator','photoshop','branding','typography','layout'],
+    tools: ['Adobe Illustrator','Photoshop','InDesign'],
+    qualifications: 'BFA; Adobe Certified Expert.',
+    hardSkills: ['Color Theory','Vector Graphics'],
+    softSkills: ['Creativity','Client Communication']
+  },
+  'UI/UX Designer': {
+    roleDescription: 'Designs user interfaces and experiences with research and prototyping.',
+    keyPoints: 'Provide usability test outcomes and inclusive design practices.',
+    keywords: ['ui/ux','figma','wireframing','prototyping','user research','accessibility'],
+    tools: ['Figma','Sketch','Penpot'],
+    qualifications: 'BS UX; Nielsen Norman.',
+    hardSkills: ['Heuristic Evaluation','Design Systems'],
+    softSkills: ['Empathy','Collaboration']
+  },
+
+  // 12. Logistics & Supply Chain (subset)
+  'Supply Chain Analyst': {
+    roleDescription: 'Analyzes logistics data to optimize costs and delivery performance.',
+    keyPoints: 'Demonstrate cost savings and OTIF improvements.',
+    keywords: ['supply chain','forecasting','optimization','kpis','sap'],
+    tools: ['Tableau','Llamasoft','Excel'],
+    qualifications: 'BS SCM; CSCP.',
+    hardSkills: ['Network Optimization','KPI Reporting'],
+    softSkills: ['Analytical Thinking','Communication']
+  },
+  'Logistics Coordinator': {
+    roleDescription: 'Coordinates shipments and multimodal logistics, ensuring OTIF delivery.',
+    keyPoints: 'List carriers and lanes; highlight customs/documentation expertise.',
+    keywords: ['logistics','freight forwarding','tracking','customs','scheduling','bill of lading'],
+    tools: ['Freightos','WMS'],
+    qualifications: 'Diploma Logistics; CTL.',
+    hardSkills: ['Documentation','Scheduling'],
+    softSkills: ['Coordination','Problem-Solving']
+  },
+
+  // 4. Education & Training (subset)
+  'Teacher': {
+    roleDescription: 'Delivers curriculum, assesses performance, and manages the classroom environment.',
+    keyPoints: 'Show pass rates and inclusive practices; include LMS experience.',
+    keywords: ['teaching','curriculum','lesson planning','assessment','classroom management','lms'],
+    tools: ['Google Classroom','Moodle'],
+    qualifications: 'BEd/PGCE; Teaching License.',
+    hardSkills: ['Differentiated Instruction','Rubrics'],
+    softSkills: ['Engagement','Inclusivity']
+  },
+
+  // 3. Engineering & Manufacturing (subset)
+  'Mechanical Engineer': {
+    roleDescription: 'Designs mechanical systems and components; prototypes and tests with CAD/FEA.',
+    keyPoints: 'Provide CAD portfolio and quantified design outcomes.',
+    keywords: ['mechanical engineering','cad','solidworks','fea','thermodynamics','manufacturing','prototyping'],
+    tools: ['SolidWorks','ANSYS','Fusion 360'],
+    qualifications: 'BME; PE Mechanical; Six Sigma.',
+    hardSkills: ['Stress Analysis','Kinematics'],
+    softSkills: ['Innovation','Attention to Detail']
+  },
+
+  // 11. Trades & Skilled Labor (subset)
+  'Electrician': {
+    roleDescription: 'Installs and repairs electrical systems with adherence to safety codes.',
+    keyPoints: 'Document safety record and compliance; list complex jobs.',
+    keywords: ['electrical','wiring','nec codes','troubleshooting','panels','solar pv'],
+    tools: ['Multimeter','AutoCAD Electrical'],
+    qualifications: 'Apprenticeship; Journeyman Electrician.',
+    hardSkills: ['Conduit Bending','Panel Work'],
+    softSkills: ['Safety Awareness','Reliability']
+  },
+
+  // Generic fallback
+  'Generic': {
+    roleDescription: 'General role matching for unspecified categories across global markets.',
+    keyPoints: 'Use standard sections, quantify outcomes, and ensure ATS-friendly formatting.',
+    keywords: ['communication','project management','excel','presentation','documentation','research','leadership'],
+    tools: ['Excel','PowerPoint','Word'],
+    qualifications: 'Relevant degree/certifications based on role.',
+    hardSkills: ['Problem-Solving','Data Analysis'],
+    softSkills: ['Collaboration','Time Management']
   }
 };
 
-// Helper function to extract text from CV file
+// Extract text from CV file
 async function extractTextFromFile(buffer, mimetype) {
   try {
     if (mimetype === 'application/pdf') {
       const data = await pdf(buffer);
-      return data.text;
+      return data.text || '';
     } else if (
-      mimetype ===
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ) {
       const { value } = await mammoth.extractRawText({ buffer });
-      return value;
+      return value || '';
     } else {
-      throw new Error('Unsupported file format. Use .pdf or .docx');
+      throw new Error('Unsupported file format. Use PDF or DOCX (.docx).');
     }
   } catch (error) {
     console.error('Error parsing file:', error.message, error.stack);
@@ -88,220 +272,195 @@ async function extractTextFromFile(buffer, mimetype) {
   }
 }
 
-// Helper function to detect CV sections
+// Detect CV sections
 function detectSections(text) {
-  const sections = {
-    contact: false,
-    summary: false,
-    experience: false,
-    skills: false,
-    education: false,
-    certifications: false,
-  };
-
   const lowerText = text.toLowerCase();
-  sections.contact = /name|email|phone|linkedin|github/i.test(lowerText);
-  sections.summary = /summary|profile|objective/i.test(lowerText);
-  sections.experience = /experience|work history|employment/i.test(lowerText);
-  sections.skills = /skills|technical skills|soft skills/i.test(lowerText);
-  sections.education = /education|degree|university/i.test(lowerText);
-  sections.certifications = /certifications|certificates/i.test(lowerText);
-
-  return sections;
+  return {
+    contact: /name|email|phone|linkedin|github|address/.test(lowerText),
+    summary: /summary|profile|objective/.test(lowerText),
+    experience: /experience|work history|employment/.test(lowerText),
+    skills: /skills|technical skills|soft skills/.test(lowerText),
+    education: /education|degree|university|college/.test(lowerText),
+    certifications: /certifications|certificates|licenses/.test(lowerText),
+  };
 }
 
-// Helper function to evaluate readability
+// Evaluate readability (strict heuristics suitable for ATS checks)
 function evaluateReadability(text) {
-  const bulletCount = (text.match(/•|-|\*/g) || []).length;
-  const sentences = text.split(/[.!?]/).filter((s) => s.trim().length > 0);
+  const bulletCount = (text.match(/[•\-\*\u2022]/g) || []).length;
+  const sentences = text.split(/[.!?\n]/).filter((s) => s.trim().length > 0);
   const avgSentenceLength =
-    sentences.reduce((sum, s) => sum + s.trim().split(/\s+/).length, 0) /
-    (sentences.length || 1);
-  const hasMetrics = /\d+%|\$\d+|\d+\s*(months|years|projects|clients)/i.test(text);
+    sentences.reduce((sum, s) => sum + s.trim().split(/\s+/).length, 0) / (sentences.length || 1);
+  const hasMetrics = /\b(\d+%|\$\d+(?:,\d{3})*|\d+\s*(months|years|projects|clients|deals|patients))\b/i.test(text);
 
-  let readabilityScore = 50;
-  if (bulletCount > 5) readabilityScore += 20;
-  if (avgSentenceLength < 20) readabilityScore += 20;
-  if (hasMetrics) readabilityScore += 10;
-  return Math.min(readabilityScore, 100);
+  let readabilityScore = 40;
+  if (bulletCount >= 8) readabilityScore += 25; // strong bullet usage
+  else if (bulletCount >= 4) readabilityScore += 15;
+  if (avgSentenceLength < 18) readabilityScore += 20; // concise
+  if (hasMetrics) readabilityScore += 15; // measurable impact
+  return Math.max(0, Math.min(100, readabilityScore));
 }
 
-// Helper function to detect stand-out achievements
+// Detect stand-out achievements (simple numeric/percent/quantity cues)
 function detectStandOutPoints(text) {
-  const achievements = text.match(/\d+%|\$\d+|\d+\s*(months|years|projects|clients)/gi) || [];
-  return achievements;
+  const matches = text.match(/\b(\d+%|\$\d+(?:,\d{3})*|\d+\s*(?:months|years|projects|clients|sales|deals))\b/gi) || [];
+  return matches.slice(0, 25);
+}
+
+// Tokenize job description into keywords (lowercased, length>2)
+function extractKeywords(jobDescription) {
+  return (jobDescription || '')
+    .split(/[^a-zA-Z0-9+.#/]+/)
+    .map((k) => k.trim().toLowerCase())
+    .filter((k) => k.length > 2)
+    .slice(0, 200); // cap to avoid noise
+}
+
+// Determine the best matching role given the job description
+function detectRole(jobDescription) {
+  const jd = (jobDescription || '').toLowerCase();
+  let bestRole = 'Generic';
+  let bestScore = -1;
+  for (const [role, meta] of Object.entries(rolesCatalog)) {
+    const tokens = [role]
+      .concat(meta.keywords || [])
+      .concat(meta.hardSkills || [])
+      .concat(meta.softSkills || [])
+      .concat(meta.tools || [])
+      .map((t) => String(t).toLowerCase());
+    const score = tokens.reduce((acc, t) => acc + (jd.includes(t) ? 1 : 0), 0);
+    if (score > bestScore) {
+      bestScore = score;
+      bestRole = role;
+    }
+  }
+  return bestRole;
 }
 
 async function scanCv(cvBuffer, cvMimetype, jobDescription) {
   try {
     // Extract text from CV
     const cvText = await extractTextFromFile(cvBuffer, cvMimetype);
+    const cvLower = cvText.toLowerCase();
 
-    // Extract keywords from job description
-    const keywords = jobDescription
-      .split(/\W+/)
-      .map((k) => k.toLowerCase())
-      .filter((k) => k.length > 2);
+    // Extract keywords from JD and detect role
+    const jdKeywords = extractKeywords(jobDescription);
+    const role = detectRole(jobDescription);
+    const roleMeta = rolesCatalog[role] || rolesCatalog.Generic;
 
-    // Detect job category from job description
-    let jobCategory = 'Full Stack Developer'; // Default
-    for (const category in techSkillsByCategory) {
-      if (jobDescription.toLowerCase().includes(category.toLowerCase())) {
-        jobCategory = category;
-        break;
-      }
-    }
+    // Aggregate canonical keywords for matching
+    const roleKeywords = (roleMeta.keywords || []).map((k) => String(k).toLowerCase());
+    const unionKeywords = Array.from(new Set(jdKeywords.concat(roleKeywords))).slice(0, 300);
 
-    const { hardSkills, softSkills } = techSkillsByCategory[jobCategory];
+    // Match keywords and skills/tools
+    const matchedKeywords = unionKeywords.filter((word) => cvLower.includes(word)).slice(0, 200);
+    const matchedHardSkills = (roleMeta.hardSkills || []).filter((s) => cvLower.includes(String(s).toLowerCase()));
+    const matchedSoftSkills = (roleMeta.softSkills || []).filter((s) => cvLower.includes(String(s).toLowerCase()));
+    const matchedTools = (roleMeta.tools || []).filter((t) => cvLower.includes(String(t).toLowerCase()));
 
-    // Match keywords and skills
-    const cvWords = cvText.toLowerCase();
-    const matchedKeywords = keywords.filter((word) => cvWords.includes(word));
-    const matchedHardSkills = hardSkills.filter((skill) => cvWords.includes(skill.toLowerCase()));
-    const matchedSoftSkills = softSkills.filter((skill) => cvWords.includes(skill.toLowerCase()));
-    const missingKeywords = keywords.filter((word) => !matchedKeywords.includes(word));
-    const missingHardSkills = hardSkills.filter((skill) => !cvWords.includes(skill.toLowerCase()));
-    const missingSoftSkills = softSkills.filter((skill) => !cvWords.includes(skill.toLowerCase()));
+    const missingKeywords = unionKeywords.filter((word) => !cvLower.includes(word)).slice(0, 50);
 
-    // Calculate scores
-    const keywordMatch = Math.floor((matchedKeywords.length / keywords.length) * 100);
-    const sectionCount = Object.values(detectSections(cvText)).filter(Boolean).length;
+    // Scores (Very Strict)
+    const sectionsMap = detectSections(cvText);
+    const sectionCount = Object.values(sectionsMap).filter(Boolean).length; // out of 6
     const structureScore = Math.floor((sectionCount / 6) * 100);
     const readabilityScore = evaluateReadability(cvText);
-    const overallScore = Math.floor(
-      keywordMatch * 0.5 + structureScore * 0.3 + readabilityScore * 0.2
-    );
+    const keywordMatch = Math.floor((matchedKeywords.length / Math.max(1, unionKeywords.length)) * 100);
+
+    // Strict weighting and penalties
+    let overallScore = Math.floor(keywordMatch * 0.6 + structureScore * 0.25 + readabilityScore * 0.15);
+    const missingSectionsCount = Object.values(sectionsMap).filter((present) => !present).length;
+    if (missingSectionsCount > 0) overallScore = Math.max(0, overallScore - missingSectionsCount * 6);
+    if (unionKeywords.length >= 12 && matchedKeywords.length < 4) overallScore = Math.max(0, overallScore - 10); // severe keyword miss
+    overallScore = Math.max(0, Math.min(100, overallScore));
 
     // Detect stand-out points
     const standOutPoints = detectStandOutPoints(cvText);
 
-    // Generate detailed feedback (400+ words for good/bad cases)
+    // Generate feedback and solutions
     const feedback = [];
     const solutions = [];
 
-    if (overallScore >= 90) {
+    if (overallScore >= 79) {
       feedback.push({
         section: 'Overall',
-        message: `Your CV is exceptional, achieving an impressive ${overallScore}% match for the ${jobCategory} role. It is highly ATS-compatible, featuring critical technical skills such as ${matchedHardSkills.slice(0, 3).join(', ') || 'none'} and relevant soft skills like ${matchedSoftSkills.slice(0, 3).join(', ') || 'none'}. The CV structure is robust, incorporating all six essential sections: Contact Information, Professional Summary, Work Experience, Skills, Education, and Certifications. This makes it easy for both ATS systems and recruiters to parse and evaluate your qualifications. Your use of concise sentences, effective bullet points, and quantifiable achievements like ${standOutPoints.slice(0, 2).join(', ') || 'measurable results'} significantly enhances your CV's impact. The readability score of ${readabilityScore}% reflects clear formatting and scannable content, which is critical for passing ATS filters. To further elevate your CV, consider emphasizing additional soft skills such as ${softSkills[0]} or ${softSkills[1]} in your experience descriptions to highlight interpersonal strengths. Additionally, ensure that all metrics are as specific as possible, such as "improved system efficiency by 30%" or "delivered 5 projects ahead of schedule," to maximize impact. Tailoring your CV even further to include any niche skills mentioned in the job description will ensure you remain a top candidate.`,
+        message: `Excellent alignment. Your CV achieved a strong ${overallScore}% match for the ${role} role. Clear structure, strong keyword presence, and good readability will help you stand out.`,
       });
       solutions.push({
-        section: 'Overall Improvements',
-        message: `Your CV is already in excellent shape, but there are opportunities to refine it further for the ${jobCategory} role. To strengthen soft skills, explicitly mention ${missingSoftSkills.slice(0, 2).join(' or ') || 'teamwork'} in your Work Experience or Summary, such as "collaborated with cross-functional teams to deliver projects." Add more quantifiable achievements to your Experience section, for example, "reduced API response time by 25%" or "implemented 10+ features in React." Ensure your Professional Summary includes 2–3 job-specific keywords like ${missingKeywords.slice(0, 2).join(', ') || 'JavaScript, React'} to enhance ATS compatibility. Maintain consistent formatting throughout, using the same bullet style and font (e.g., Arial, 11–12pt) to avoid parsing issues. Avoid complex layouts, tables, or graphics, as these can confuse ATS systems. If applying to multiple roles, create tailored versions of your CV for each job description, emphasizing relevant skills like ${hardSkills.slice(0, 2).join(', ')} to maintain a high score. Double-check that your Contact Information includes a professional email and LinkedIn profile, and consider adding a GitHub link if relevant to showcase your work.`
+        section: 'Maintain Strengths',
+        message: `Keep measurable outcomes in bullets (e.g., increased efficiency by 20%), ensure recent experience highlights the most relevant ${role} tools (e.g., ${(roleMeta.tools || []).slice(0, 3).join(', ')}), and continue using ATS-friendly formatting (Arial/Times New Roman 10–12pt, no tables/graphics in core sections).`
       });
-    } else if (overallScore >= 70) {
+    } else if (overallScore >= 60) {
       feedback.push({
         section: 'Overall',
-        message: `Your CV scores a solid ${overallScore}% for the ${jobCategory} role, indicating a good foundation but room for improvement. You’ve included relevant technical skills such as ${matchedHardSkills.slice(0, 3).join(', ') || 'none'}, which align well with the job requirements, but you’re missing key skills like ${missingHardSkills.slice(0, 3).join(', ') || 'none'}. Soft skills like ${matchedSoftSkills.slice(0, 2).join(', ') || 'none'} are present, but incorporating ${missingSoftSkills.slice(0, 2).join(', ') || 'communication'} would strengthen your application. Your CV structure includes ${sectionCount}/6 required sections, which is a good start, but missing sections reduce ATS compatibility. The readability score of ${readabilityScore}% suggests decent formatting, but longer sentences or fewer bullet points may hinder scannability. Achievements like ${standOutPoints.slice(0, 2).join(', ') || 'none'} are noted, but adding more quantifiable metrics will make your CV stand out. To improve your chances of being shortlisted, focus on tailoring your CV to the job description, ensuring all required sections are present, and enhancing readability with concise, bullet-pointed descriptions.`,
+        message: `Moderate alignment. Your CV scored ${overallScore}% for the ${role} role. You have a foundation but need targeted improvements to increase match and ATS compatibility.`,
       });
       solutions.push({
-        section: 'Overall Improvements',
-        message: `To elevate your CV for the ${jobCategory} role, incorporate missing technical skills like ${missingHardSkills.slice(0, 3).join(', ') || 'Python, SQL'} into your Skills and Experience sections. For example, if you’ve used ${missingHardSkills[0] || 'React'} in a project, state "Developed user interfaces using React for scalable applications." Add soft skills like ${missingSoftSkills.slice(0, 2).join(' or ') || 'problem-solving'} by describing relevant scenarios, such as "Resolved technical challenges to meet project deadlines." Ensure all six sections are included: Contact Information (name, email, LinkedIn), Professional Summary (2–4 sentences with keywords like ${keywords.slice(0, 2).join(', ')}), Work Experience (reverse chronological, e.g., "Software Engineer, ABC Corp, 2020–2023"), Skills (list ${hardSkills.slice(0, 3).join(', ')}), Education, and Certifications. For missing sections, add a Summary with job-specific terms or a Certifications section listing ${missingHardSkills[0] || 'AWS'} credentials. Use bullet points for clarity (e.g., "• Optimized database queries, improving performance by 20%"). Keep sentences under 20 words and avoid tables, graphics, or non-standard fonts like Comic Sans. Tailor your CV for each job to align with specific requirements, ensuring exact keyword matches.`
-      });
-    } else if (overallScore >= 50) {
-      feedback.push({
-        section: 'Overall',
-        message: `Your CV scores ${overallScore}% for the ${jobCategory} role, placing it in the average range. It includes some relevant skills like ${matchedHardSkills.slice(0, 3).join(', ') || 'none'}, but lacks critical technical skills such as ${missingHardSkills.slice(0, 3).join(', ') || 'none'} and soft skills like ${missingSoftSkills.slice(0, 2).join(', ') || 'none'}. Only ${sectionCount}/6 required sections are present, which significantly weakens ATS compatibility. The readability score of ${readabilityScore}% indicates issues with long sentences or insufficient bullet points, making it harder for recruiters to scan. Achievements like ${standOutPoints.slice(0, 2).join(', ') || 'none'} are present but limited in impact. To improve, focus on adding missing sections, incorporating job-specific keywords, and quantifying achievements to demonstrate value. Tailoring your CV to the job description and adhering to ATS best practices will significantly boost your chances.`,
-      });
-      solutions.push({
-        section: 'Overall Improvements',
-        message: `To improve your CV for the ${jobCategory} role, add missing technical skills like ${missingHardSkills.slice(0, 3).join(', ') || 'JavaScript, AWS'} by detailing relevant projects (e.g., "Built REST API using Node.js"). Incorporate soft skills like ${missingSoftSkills.slice(0, 2).join(' or ') || 'leadership'} in your Experience, such as "Led a team of 5 to deliver a project on time." Include all six required sections: Contact Information (name, email, phone, LinkedIn), Professional Summary (2–4 sentences with keywords like ${keywords.slice(0, 2).join(', ')}), Work Experience (reverse chronological, e.g., "Developer, XYZ, 2021–2023"), Skills (e.g., ${hardSkills.slice(0, 3).join(', ')}, ${softSkills.slice(0, 2).join(', ')}), Education, and Certifications. For missing sections, add a Summary with terms like ${missingKeywords[0] || 'React'} or a Certifications section for ${missingHardSkills[0] || 'AWS'}. Use bullet points (e.g., "• Reduced bugs by 30% through testing") and keep sentences concise (<20 words). Avoid tables, graphics, or headers/footers, and use standard fonts like Arial to ensure ATS compatibility. Tailor your CV for each application to match job-specific requirements.`
+        section: 'Targeted Improvements',
+        message: `Increase keyword alignment by naturally adding missing terms in context (e.g., under Work Experience). Focus on ${missingKeywords.slice(0, 5).join(', ') || 'role-specific skills'}. Ensure all standard sections are present and that bullets emphasize quantifiable outcomes.`
       });
     } else {
       feedback.push({
         section: 'Overall',
-        message: `Your CV scores a low ${overallScore}% for the ${jobCategory} role, indicating significant improvements are needed. It lacks critical technical skills like ${missingHardSkills.slice(0, 3).join(', ') || 'none'} and soft skills such as ${missingSoftSkills.slice(0, 2).join(', ') || 'none'}, which are essential for ATS and recruiter attention. Only ${sectionCount}/6 required sections are present, severely limiting ATS compatibility. The readability score of ${readabilityScore}% suggests issues with dense paragraphs, long sentences, or lack of bullet points, making it difficult to scan. Achievements like ${standOutPoints.slice(0, 2).join(', ') || 'none'} are insufficient to demonstrate impact. Major restructuring is needed to include all standard sections, incorporate job-specific keywords, and highlight quantifiable achievements to improve your chances of being shortlisted.`,
+        message: `Low alignment. Your CV scored ${overallScore}% for the ${role} role. Significant improvements are needed to pass strict ATS filters.`,
       });
+      const missingSectionsList = Object.entries(sectionsMap)
+        .filter(([_, present]) => !present)
+        .map(([section]) => section);
+      const missingSectionsAdvice = missingSectionsList.length
+        ? `Add missing sections: ${missingSectionsList.join(', ').replace(/\b\w/g, (c) => c.toUpperCase())}. `
+        : '';
       solutions.push({
-        section: 'Overall Improvements',
-        message: `To significantly improve your CV for the ${jobCategory} role, start by adding missing technical skills like ${missingHardSkills.slice(0, 3).join(', ') || 'Python, React'} in your Skills and Experience sections (e.g., "Developed web application using React and Node.js"). Include soft skills like ${missingSoftSkills.slice(0, 2).join(' or ') || 'communication'} by describing scenarios (e.g., "Communicated with clients to define project requirements"). Add all six required sections: Contact Information (name, email, phone, LinkedIn), Professional Summary (2–4 sentences with keywords like ${keywords.slice(0, 2).join(', ')}), Work Experience (reverse chronological, e.g., "Software Engineer, ABC Corp, 2020–2023"), Skills (list ${hardSkills.slice(0, 3).join(', ')}, ${softSkills.slice(0, 2).join(', ')}), Education, and Certifications. Use bullet points for clarity (e.g., "• Optimized code, improving performance by 25%"). Keep sentences under 20 words and avoid tables, graphics, or non-standard fonts like Comic Sans. Use Arial or Times New Roman for ATS compatibility. Tailor your CV to each job description, ensuring exact keyword matches to boost your score significantly.`
+        section: 'Action Plan',
+        message: `${missingSectionsAdvice}Incorporate relevant keywords such as ${missingKeywords.slice(0, 8).join(', ') || 'keywords from the job description'} under Skills and in bullet points describing your impact (e.g., “reduced cost by 15%”). Use ATS-friendly formatting (Arial 10–12pt, no tables/graphics in core sections), and ensure bullets are concise (<18 words).`
       });
     }
 
-    // Additional feedback and solutions
-    const missingSections = Object.entries(detectSections(cvText))
+    // Structure feedback
+    const missingSectionsList = Object.entries(sectionsMap)
       .filter(([_, present]) => !present)
       .map(([section]) => section);
-    if (missingSections.length > 0) {
+    if (missingSectionsList.length > 0) {
       feedback.push({
         section: 'Structure',
-        message: `Your CV is missing critical sections: ${missingSections
+        message: `Your CV is missing critical sections: ${missingSectionsList
           .join(', ')
-          .replace(/contact|summary|experience|skills|education|certifications/g, (s) =>
-            s.charAt(0).toUpperCase() + s.slice(1)
-          )}. ATS systems prioritize CVs with all standard sections, so their absence significantly reduces your visibility to recruiters.`,
+          .replace(/contact|summary|experience|skills|education|certifications/g, (s) => s.charAt(0).toUpperCase() + s.slice(1))}. ATS systems prioritize CVs with all standard sections.`,
       });
       solutions.push({
         section: 'Structure Improvements',
-        message: `Add the missing sections: ${missingSections
-          .join(', ')
-          .replace(/contact|summary|experience|skills|education|certifications/g, (s) =>
-            s.charAt(0).toUpperCase() + s.slice(1)
-          )}. For Contact Information, include your full name, professional email, phone number, and LinkedIn or GitHub URL. Add a Professional Summary (2–4 sentences) incorporating keywords like ${keywords.slice(0, 2).join(', ')} to highlight your fit for the role. List Work Experience in reverse chronological order (e.g., "Frontend Developer, XYZ Corp, 2021–2023"). Include a Skills section with technical skills like ${hardSkills.slice(0, 3).join(', ')} and soft skills like ${softSkills.slice(0, 2).join(', ')}. Add Education (e.g., "BS Computer Science, ABC University") and Certifications (e.g., "AWS Certified Developer"). Use a clean layout with standard fonts like Arial or Times New Roman to ensure ATS compatibility.`
-      });
-    } else {
-      feedback.push({
-        section: 'Structure',
-        message: `Your CV includes all required sections: Contact Information, Professional Summary, Work Experience, Skills, Education, and Certifications. This makes it highly ATS-compatible. Ensure Work Experience is listed in reverse chronological order and uses consistent formatting to maintain professionalism.`,
-      });
-      solutions.push({
-        section: 'Structure Improvements',
-        message: `Your CV structure is solid, but ensure Work Experience is in reverse chronological order (most recent first). Use consistent formatting, such as the same bullet style and font (Arial, 11–12pt) across all sections. Verify that your Contact Information includes a professional email and LinkedIn/GitHub links. In your Professional Summary, incorporate 2–3 job-specific keywords like ${keywords.slice(0, 2).join(', ')} to boost ATS ranking. For Skills, categorize them into Technical (e.g., ${hardSkills.slice(0, 3).join(', ')}) and Soft Skills (e.g., ${softSkills.slice(0, 2).join(', ')}) for clarity. Ensure Certifications are up-to-date and relevant to the ${jobCategory} role.`
+        message: `Add the missing sections. For Summary, include 2–3 role-specific keywords (e.g., ${unionKeywords.slice(0, 2).join(', ')}). Under Work Experience, use bullets with metrics (e.g., “Improved throughput by 25%”). Ensure a clear Skills section grouped by categories (Tools, Frameworks, Soft Skills).`
       });
     }
 
+    // Keyword feedback
     if (missingKeywords.length > 0) {
       feedback.push({
         section: 'Keywords',
-        message: `Your CV misses several critical keywords from the job description: ${missingKeywords
-          .slice(0, 5)
-          .join(', ')}. These keywords are essential for ATS systems to rank your CV highly, as they indicate alignment with the job requirements.`,
+        message: `Some critical keywords from the job description and the role profile are missing: ${missingKeywords.slice(0, 10).join(', ')}. These improve ATS ranking when used naturally.`,
       });
       solutions.push({
         section: 'Keyword Improvements',
-        message: `Incorporate missing keywords like ${missingKeywords.slice(0, 5).join(', ')} into your CV naturally. Add them to your Skills section (e.g., "Proficient in ${missingKeywords[0] || 'JavaScript'}") or Work Experience (e.g., "Developed features using ${missingKeywords[1] || 'React'}"). Ensure exact matches with job description terms, such as using "Node.js" instead of "Node" if specified. Avoid keyword stuffing by integrating terms contextually, such as in project descriptions or achievements. For example, if the job requires ${missingKeywords[0] || 'AWS'}, mention "Deployed applications on AWS" in your Experience. Review the job description carefully to identify additional relevant terms and incorporate them strategically.`
-      });
-    } else {
-      feedback.push({
-        section: 'Keywords',
-        message: `Your CV includes all critical keywords from the job description, making it highly ATS-compatible. Keywords like ${matchedKeywords.slice(0, 5).join(', ')} align well with the ${jobCategory} role, ensuring strong visibility to recruiters.`,
-      });
-      solutions.push({
-        section: 'Keyword Improvements',
-        message: `Your keyword alignment is excellent, but continue to tailor your CV for each job application to maintain this strength. Ensure keywords like ${matchedKeywords.slice(0, 3).join(', ')} are used naturally in your Skills, Experience, and Summary sections. For example, reinforce ${matchedKeywords[0] || 'JavaScript'} by mentioning specific projects (e.g., "Built scalable web apps using JavaScript"). Avoid overusing terms to prevent appearing unnatural. If applying to different roles, adjust keywords to match each job description precisely, ensuring ATS compatibility.`
+        message: `Add missing keywords where relevant (Skills and Work Experience). Use exact phrases from the job description when applicable (e.g., “Node.js”, not just “Node”). Avoid keyword stuffing; integrate them naturally into achievement-oriented bullets.`
       });
     }
 
-    if (readabilityScore < 70) {
-      feedback.push({
-        section: 'Readability',
-        message: `Your CV’s readability score of ${readabilityScore}% is low, likely due to long sentences, dense paragraphs, or insufficient bullet points. ATS systems and recruiters prefer concise, scannable CVs with clear formatting to quickly identify qualifications and achievements.`,
-      });
-      solutions.push({
-        section: 'Readability Improvements',
-        message: `Improve readability by shortening sentences to under 20 words and using bullet points for Work Experience and Skills (e.g., "• Developed API with Node.js, reducing latency by 20%"). Add quantifiable achievements, such as "increased efficiency by 15%" or "delivered 3 projects on time," to highlight impact. Replace dense paragraphs with concise bullet points to enhance scannability. Use standard fonts like Arial or Times New Roman (11–12pt) to ensure ATS compatibility. Avoid complex formatting, tables, or graphics that may confuse ATS parsers. For example, list skills as "• JavaScript • React • Teamwork" instead of a paragraph. Ensure consistent spacing and alignment for a professional look.`
-      });
-    } else {
-      feedback.push({
-        section: 'Readability',
-        message: `Your CV has a strong readability score of ${readabilityScore}%, with effective use of bullet points, concise sentences, and quantifiable achievements like ${standOutPoints.slice(0, 2).join(', ') || 'none'}. This makes it easy for ATS systems and recruiters to scan and evaluate.`,
-      });
-      solutions.push({
-        section: 'Readability Improvements',
-        message: `Maintain your strong readability by continuing to use bullet points (e.g., "• Optimized database queries, improving performance by 20%") and keeping sentences under 20 words. Add more quantifiable achievements, such as "reduced costs by 10%" or "completed 5 projects under budget," to further enhance impact. Ensure consistent use of standard fonts like Arial or Times New Roman and avoid any tables, graphics, or headers/footers that could disrupt ATS parsing. If tailoring for a new role, verify that new content maintains this level of clarity and scannability.`
-      });
-    }
-
-    feedback.push({
-      section: 'ATS Best Practices',
-      message: `To maximize ATS compatibility, avoid using tables, graphics, icons, or headers/footers, as these elements often fail to parse correctly. Your CV should use standard fonts and a clean, simple layout to ensure all content is machine-readable and appealing to recruiters.`,
-    });
-    solutions.push({
-      section: 'ATS Best Practices Improvements',
-      message: `Remove any tables, images, or complex formatting from your CV. Use simple bullet points (e.g., "• Developed web app using React") and standard fonts like Arial or Times New Roman (11–12pt). Ensure all text is in the main body of the document, avoiding headers/footers that ATS systems may ignore. List skills and experiences clearly, using exact keywords from the job description, such as ${keywords.slice(0, 2).join(', ')}. For example, if the job specifies "AWS," use "AWS" instead of "Amazon Web Services." Verify that your Contact Information, Summary, and Skills sections are easily scannable and contain relevant terms to boost ATS ranking.`
-    });
+    // Role meta guidance block for ATS UI
+    const roleGuidance = {
+      role,
+      roleDescription: roleMeta.roleDescription,
+      keyPoints: roleMeta.keyPoints,
+      cvStructure: 'Use 1–2 pages, standard sections (Contact, Summary, Experience, Skills, Education, Certifications), ATS-safe fonts (Arial/Times 10–12pt), and avoid tables/graphics in key sections.',
+      toolsAndSoftware: roleMeta.tools || [],
+      qualifications: roleMeta.qualifications || '',
+      skills: {
+        hard: roleMeta.hardSkills || [],
+        soft: roleMeta.softSkills || []
+      }
+    };
 
     return {
-      keywordMatch: `${keywordMatch}%`,
+      keywordMatch: `${Math.max(0, Math.min(100, keywordMatch))}%`,
       structureScore: `${structureScore}%`,
       readabilityScore: `${readabilityScore}%`,
       overallScore: `${overallScore}%`,
@@ -309,9 +468,12 @@ async function scanCv(cvBuffer, cvMimetype, jobDescription) {
       missingKeywords,
       matchedHardSkills,
       matchedSoftSkills,
+      matchedTools,
       standOutPoints,
+      category: role,
       feedback,
       solutions,
+      roleGuidance,
     };
   } catch (error) {
     console.error('Scanning failed:', error.message, error.stack);

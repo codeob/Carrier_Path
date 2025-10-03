@@ -34,10 +34,10 @@ router.post('/', authMiddleware(['user']), upload.single('resume'), createApplic
 router.get('/', authMiddleware(['recruiter']), getApplications);
 // Protected route to update an application, restricted to recruiters
 router.put('/:id', authMiddleware(['recruiter']), updateApplication);
+// Protected route to delete all applications for recruiter's jobs (must come before /:id)
+router.delete('/clear-all', authMiddleware(['recruiter']), clearAllApplications);
 // Protected route to delete an application, restricted to recruiters
 router.delete('/:id', authMiddleware(['recruiter']), deleteApplication);
-// Protected route to delete all applications for recruiter's jobs
-router.delete('/clear-all', authMiddleware(['recruiter']), clearAllApplications);
 // Protected route to mark applications as read, restricted to recruiters
 router.post('/mark-as-read', authMiddleware(['recruiter']), markApplicationsAsRead);
 // Export the router
