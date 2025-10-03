@@ -216,35 +216,35 @@ const Applications = () => {
                     </div>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
-                  <button
-                    onClick={() => handleStatusChange(app._id, 'accepted')}
-                    className="bg-green-50 hover:bg-green-100 text-green-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
-                    disabled={app.status === 'accepted'}
-                  >
-                    ✅ Accept
-                  </button>
-                  <button
-                    onClick={() => handleStatusChange(app._id, 'rejected')}
-                    className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
-                    disabled={app.status === 'rejected'}
-                  >
-                    ❌ Reject
-                  </button>
-                  <button
-                    onClick={() => handleStatusChange(app._id, 'pending')}
-                    className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
-                    disabled={app.status === 'pending'}
-                  >
-                    ⏳ Pending
-                  </button>
-                  <button
-                    onClick={() => handleDelete(app._id)}
-                    className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
-                  >
-                    🗑️ Delete
-                  </button>
-                </div>
+                {app.status === 'pending' && (
+                  <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-200">
+                    <button
+                      onClick={() => handleStatusChange(app._id, 'accepted')}
+                      className="bg-green-50 hover:bg-green-100 text-green-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
+                    >
+                      ✅ Accept
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange(app._id, 'rejected')}
+                      className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
+                    >
+                      ❌ Reject
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange(app._id, 'pending')}
+                      className="bg-yellow-50 hover:bg-yellow-100 text-yellow-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
+                      disabled={app.status === 'pending'}
+                    >
+                      ⏳ Pending
+                    </button>
+                    <button
+                      onClick={() => handleDelete(app._id)}
+                      className="bg-red-50 hover:bg-red-100 text-red-700 font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2"
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>

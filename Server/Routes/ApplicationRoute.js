@@ -3,7 +3,7 @@ const express = require('express');
 // Create an instance of express Router
 const router = express.Router();
 // Import application controller functions
-const { createApplication, getApplications, updateApplication, deleteApplication, markApplicationsAsRead } = require('../Controllers/ApplicationController');
+const { createApplication, getApplications, updateApplication, deleteApplication, clearAllApplications, markApplicationsAsRead } = require('../Controllers/ApplicationController');
 // Import authentication middleware
 const authMiddleware = require('../middleware/authMiddleware');
 // Import multer for file uploads
@@ -36,6 +36,8 @@ router.get('/', authMiddleware(['recruiter']), getApplications);
 router.put('/:id', authMiddleware(['recruiter']), updateApplication);
 // Protected route to delete an application, restricted to recruiters
 router.delete('/:id', authMiddleware(['recruiter']), deleteApplication);
+// Protected route to delete all applications for recruiter's jobs
+router.delete('/clear-all', authMiddleware(['recruiter']), clearAllApplications);
 // Protected route to mark applications as read, restricted to recruiters
 router.post('/mark-as-read', authMiddleware(['recruiter']), markApplicationsAsRead);
 // Export the router
