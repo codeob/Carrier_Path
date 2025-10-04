@@ -265,9 +265,17 @@ exports.getPublicJobs = async (req, res) => {
       experience,
       sortBy = 'createdAt',
       sortOrder = 'desc',
+      recent, // new param for recent jobs
     } = req.query;
 
     const query = { status: 'published' };
+
+    if (recent) {
+      const days = Number(recent) || 7; // default 7 days
+      const since = new Date();
+      since.setDate(since.getDate() - days);
+      query.createdAt = { $gte: since };
+    }
 
     if (search) {
       query.$or = [
@@ -286,6 +294,7 @@ exports.getPublicJobs = async (req, res) => {
     if (experience) query.yearsOfExperience = { $gte: Number(experience) };
 
     const jobs = await Job.find(query)
+      .populate('postedBy', 'name company')
       .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
       .skip((page - 1) * limit)
       .limit(Number(limit));

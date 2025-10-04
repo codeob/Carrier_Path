@@ -12,7 +12,7 @@ const toNum = (v) => {
   if (v === null || v === undefined) return null;
   if (typeof v === 'number') return v;
   const s = String(v).replace(/%/g, '');
-  const n = parseInt(s, 10);
+  const n = parseInt(s, 10);                                                     
   return Number.isNaN(n) ? null : n;
 };
 

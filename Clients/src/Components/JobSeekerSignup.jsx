@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 
@@ -10,6 +10,8 @@ const UserAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const message = location.state?.message;
 
   const bgUrl = 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=1920&auto=format&fit=crop';
 
@@ -120,6 +122,12 @@ const UserAuth = () => {
             {errorMessage && (
               <div className="mt-3 bg-rose-800/20 ring-1 ring-rose-300/30 text-rose-100 px-3 py-2 rounded-lg text-xs">
                 {errorMessage}
+              </div>
+            )}
+
+            {message && (
+              <div className="mt-3 bg-green-800/20 ring-1 ring-green-300/30 text-green-100 px-3 py-2 rounded-lg text-xs">
+                {message}
               </div>
             )}
 

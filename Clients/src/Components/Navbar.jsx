@@ -1,15 +1,35 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaRegBell } from "react-icons/fa";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 function Navbar() {
+  const navigate = useNavigate();
   // isOpen controls the notifications dropdown
   const [isOpen, setIsOpen] = useState(false);
   // mobileOpen controls the mobile nav menu
   const [mobileOpen, setMobileOpen] = useState(false);
+  // jobs for notifications
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const toggleOpen = () => setIsOpen((prev) => !prev);
   const toggleMobile = () => setMobileOpen((prev) => !prev);
+
+  useEffect(() => {
+    const fetchRecentJobs = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get('https://carrier-path.onrender.com/api/jobs/public?recent=1&limit=5&sortBy=createdAt&sortOrder=desc');
+        setJobs(response.data.jobs || []);
+      } catch (error) {
+        console.error('Failed to fetch recent jobs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRecentJobs();
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white shadow-md shadow-black/30">
@@ -63,14 +83,50 @@ function Navbar() {
               onClick={toggleOpen}
               aria-label="Notifications"
               aria-expanded={isOpen}
-              className="rounded p-2 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="relative rounded p-2 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <FaRegBell className="text-2xl" />
+              {jobs.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {jobs.length}
+                </span>
+              )}
             </button>
 
             {isOpen && (
-              <div className="absolute right-0 top-full mt-2 w-64 rounded-md bg-white shadow-lg ring-1 ring-black/5 z-50">
-                <div className="p-4 text-sm text-gray-600">No new notifications</div>
+              <div className="absolute right-0 top-full mt-2 w-96 rounded-md bg-white shadow-lg ring-1 ring-black/5 z-50 max-h-96 overflow-y-auto">
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold mb-3">New Job Postings for Jobseekers 🚀</h3>
+                  {loading ? (
+                    <div className="text-sm text-gray-600">Loading...</div>
+                  ) : jobs.length > 0 ? (
+                    <div className="space-y-3">
+                      {jobs.map((job) => (
+                        <div key={job._id} className="border-b border-gray-200 pb-3 last:border-b-0">
+                          <div className="text-sm font-medium text-gray-900">{job.title}</div>
+                          <div className="text-xs text-gray-600">
+                            By {job.postedBy?.name || 'Unknown'} at {job.companyName}
+                          </div>
+                          <button
+                            onClick={() => {
+                              setIsOpen(false);
+                              navigate('/form', {
+                                state: {
+                                  message: `🌟 Exciting opportunity! Sign up or log in now to apply for this amazing job at ${job.companyName}. Don't miss out! 🚀✨`
+                                }
+                              });
+                            }}
+                            className="mt-2 text-xs bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600"
+                          >
+                            View Job
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-600">Job is not yet posted.</div>
+                  )}
+                </div>
               </div>
             )}
           </div>

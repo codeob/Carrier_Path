@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import Navbar from '../Components/Navbar'
 import Footer from '../Components/Footer'
+import { FaFileUpload, FaSearch, FaCheckCircle, FaExclamationTriangle, FaStar, FaLightbulb, FaRocket, FaRedo } from 'react-icons/fa';
 
 const CvScan = () => {
   const [cvFile, setCvFile] = useState(null);
@@ -61,89 +62,269 @@ const CvScan = () => {
     }
   };
 
+  const handleRefresh = () => {
+    setCvFile(null);
+    setJobDescription('');
+    setResult(null);
+    setError(null);
+    // Clear the file input
+    const fileInput = document.getElementById('cv-upload');
+    if (fileInput) fileInput.value = '';
+  };
+
   return (
-    <div className="">
-       <Navbar/>
-      <div className="p-6 max-w-4xl mx-auto">
-      
-      <h2 className="text-2xl font-bold mb-6 text-center">Tech Industry CV Scanner</h2>
-
-      <div className="mb-6">
-        <label className="block text-sm font-medium mb-2 text-gray-700">Upload CV (.pdf or .docx)</label>
-        <input
-          type="file"
-          accept=".pdf,.docx"
-          onChange={handleFileChange}
-          className="border w-full p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-        />
-      </div>
-
-      <div className="mb-6">
-        <label className="block text-sm font-medium mb-2 text-gray-700">Job Description</label>
-        <textarea
-          className="border w-full p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          rows="6"
-          placeholder="Paste the job description here..."
-          value={jobDescription}
-          onChange={(e) => setJobDescription(e.target.value)}
-        />
-      </div>
-
-      <button
-        onClick={handleScan}
-        disabled={isLoading}
-        className={`w-full px-6 py-3 rounded-md text-white transition ${
-          isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-        }`}
-      >
-        {isLoading ? 'Scanning...' : 'Scan CV'}
-      </button>
-
-      {error && (
-        <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-md">
-          {error}
-        </div>
-      )}
-
-      {result && (
-        <div className="mt-6 p-6 bg-white rounded-md shadow-md">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800">Scan Results:</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-            <p><strong>Keyword Match:</strong> {result.keywordMatch}</p>
-            <p><strong>Structure Score:</strong> {result.structureScore}</p>
-            <p><strong>Readability Score:</strong> {result.readabilityScore}</p>
-            <p><strong>Overall Score:</strong> {result.overallScore}</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      <Navbar />
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mb-6 shadow-lg">
+            <FaRocket className="text-white text-3xl" />
           </div>
-          <h4 className="font-semibold mb-2 text-gray-700">Matched Keywords:</h4>
-          <p className="mb-3 text-gray-600">{result.matchedKeywords.join(', ') || 'None'}</p>
-          <h4 className="font-semibold mb-2 text-gray-700">Missing Keywords:</h4>
-          <p className="mb-3 text-gray-600">{result.missingKeywords.join(', ') || 'None'}</p>
-          <h4 className="font-semibold mb-2 text-gray-700">Matched Hard Skills:</h4>
-          <p className="mb-3 text-gray-600">{result.matchedHardSkills.join(', ') || 'None'}</p>
-          <h4 className="font-semibold mb-2 text-gray-700">Matched Soft Skills:</h4>
-          <p className="mb-3 text-gray-600">{result.matchedSoftSkills.join(', ') || 'None'}</p>
-          <h4 className="font-semibold mb-2 text-gray-700">Stand-Out Achievements:</h4>
-          <p className="mb-3 text-gray-600">{result.standOutPoints.join(', ') || 'None'}</p>
-          <h4 className="font-semibold mb-2 text-gray-700">Feedback:</h4>
-          <ul className="list-disc ml-6 mb-4 text-gray-600">
-            {result.feedback.map((f, i) => (
-              <li key={i} className="mb-2">
-                <strong>{f.section}:</strong> {f.message}
-              </li>
-            ))}
-          </ul>
-          <h4 className="font-semibold mb-2 text-gray-700">Solutions:</h4>
-          <ul className="list-disc ml-6 text-gray-600">
-            {result.solutions.map((s, i) => (
-              <li key={i} className="mb-2">
-                <strong>{s.section}:</strong> {s.message}
-              </li>
-            ))}
-          </ul>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            CV Scanner
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Optimize your CV for tech industry jobs. Upload your resume and get instant feedback with AI-powered analysis.
+          </p>
         </div>
-      )}
-    </div>
-    <Footer/>
+
+        {/* Main Form Card */}
+        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* File Upload Section */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <FaFileUpload className="text-blue-500 text-xl" />
+                <h3 className="text-xl font-semibold text-gray-900">Upload Your CV</h3>
+              </div>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+                <input
+                  type="file"
+                  accept=".pdf,.docx"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="cv-upload"
+                />
+                <label htmlFor="cv-upload" className="cursor-pointer">
+                  <div className="text-gray-500 mb-2">
+                    <FaFileUpload className="mx-auto text-4xl mb-2" />
+                    <p className="text-sm">Click to upload or drag and drop</p>
+                    <p className="text-xs text-gray-400">PDF or DOCX (max 10MB)</p>
+                  </div>
+                </label>
+                {cvFile && (
+                  <div className="mt-4 p-3 bg-green-50 rounded-lg">
+                    <p className="text-green-700 text-sm flex items-center">
+                      <FaCheckCircle className="mr-2" />
+                      {cvFile.name}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Job Description Section */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <FaSearch className="text-indigo-500 text-xl" />
+                <h3 className="text-xl font-semibold text-gray-900">Job Description</h3>
+              </div>
+              <textarea
+                className="w-full h-48 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                placeholder="Paste the job description here to analyze your CV against it..."
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={handleScan}
+              disabled={isLoading || !cvFile || !jobDescription}
+              className={`inline-flex items-center px-8 py-4 rounded-lg text-white font-semibold text-lg transition-all duration-200 ${
+                isLoading || !cvFile || !jobDescription
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+              }`}
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                  Scanning...
+                </>
+              ) : (
+                <>
+                  <FaSearch className="mr-3" />
+                  Scan My CV
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleRefresh}
+              className="inline-flex items-center px-8 py-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-lg transition-all duration-200 shadow-md hover:shadow-lg"
+            >
+              <FaRedo className="mr-3" />
+              Refresh
+            </button>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
+              <FaExclamationTriangle className="text-red-500 mr-3" />
+              <p className="text-red-700">{error}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Results Section */}
+        {result && (
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Scan Results</h2>
+              <p className="text-gray-600">Here's how your CV performs against the job requirements</p>
+            </div>
+
+            {/* Scores Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl text-center">
+                <div className="text-3xl font-bold text-blue-600 mb-2">{result.keywordMatch}</div>
+                <div className="text-sm text-blue-800">Keyword Match</div>
+              </div>
+              <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl text-center">
+                <div className="text-3xl font-bold text-green-600 mb-2">{result.structureScore}</div>
+                <div className="text-sm text-green-800">Structure Score</div>
+              </div>
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl text-center">
+                <div className="text-3xl font-bold text-purple-600 mb-2">{result.readabilityScore}</div>
+                <div className="text-sm text-purple-800">Readability Score</div>
+              </div>
+              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl text-center">
+                <div className="text-3xl font-bold text-yellow-600 mb-2">{result.overallScore}</div>
+                <div className="text-sm text-yellow-800">Overall Score</div>
+              </div>
+            </div>
+
+            {/* Detailed Results */}
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Keywords Section */}
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                    <FaCheckCircle className="text-green-500 mr-2" />
+                    Matched Keywords
+                  </h4>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <p className="text-green-700">
+                      {result.matchedKeywords.length > 0
+                        ? result.matchedKeywords.join(', ')
+                        : 'No keywords matched'}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                    <FaExclamationTriangle className="text-red-500 mr-2" />
+                    Missing Keywords
+                  </h4>
+                  <div className="bg-red-50 p-4 rounded-lg">
+                    <p className="text-red-700">
+                      {result.missingKeywords.length > 0
+                        ? result.missingKeywords.join(', ')
+                        : 'All keywords matched!'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Skills Section */}
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                    <FaStar className="text-blue-500 mr-2" />
+                    Matched Hard Skills
+                  </h4>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <p className="text-blue-700">
+                      {result.matchedHardSkills.length > 0
+                        ? result.matchedHardSkills.join(', ')
+                        : 'No hard skills matched'}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                    <FaStar className="text-purple-500 mr-2" />
+                    Matched Soft Skills
+                  </h4>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <p className="text-purple-700">
+                      {result.matchedSoftSkills.length > 0
+                        ? result.matchedSoftSkills.join(', ')
+                        : 'No soft skills matched'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Stand-Out Achievements */}
+            <div className="mt-8">
+              <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                <FaRocket className="text-orange-500 mr-2" />
+                Stand-Out Achievements
+              </h4>
+              <div className="bg-orange-50 p-4 rounded-lg">
+                <p className="text-orange-700">
+                  {result.standOutPoints.length > 0
+                    ? result.standOutPoints.join(', ')
+                    : 'No standout achievements identified'}
+                </p>
+              </div>
+            </div>
+
+            {/* Feedback and Solutions */}
+            <div className="grid md:grid-cols-2 gap-8 mt-8">
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <FaLightbulb className="text-yellow-500 mr-2" />
+                  Feedback
+                </h4>
+                <div className="space-y-3">
+                  {result.feedback.map((f, i) => (
+                    <div key={i} className="bg-yellow-50 p-4 rounded-lg">
+                      <strong className="text-yellow-800">{f.section}:</strong>
+                      <p className="text-yellow-700 mt-1">{f.message}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <FaCheckCircle className="text-green-500 mr-2" />
+                  Solutions
+                </h4>
+                <div className="space-y-3">
+                  {result.solutions.map((s, i) => (
+                    <div key={i} className="bg-green-50 p-4 rounded-lg">
+                      <strong className="text-green-800">{s.section}:</strong>
+                      <p className="text-green-700 mt-1">{s.message}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      <Footer />
     </div>
   );
 };
