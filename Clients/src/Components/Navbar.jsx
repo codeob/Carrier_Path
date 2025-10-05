@@ -146,7 +146,7 @@ function Navbar() {
                   <div className="p-6">
                     <h3 className="text-lg font-bold mb-4 text-gray-900 flex items-center">
                       <span className="mr-2">🚀</span>
-                      New Job Postings
+                      New Job Postings for Jobseekers
                     </h3>
                     {loading ? (
                       <div className="flex items-center justify-center py-4">
