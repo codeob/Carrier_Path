@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { debounce } from 'lodash';
+import { formatDistanceToNow, format } from 'date-fns';
 import { motion } from 'framer-motion';
 const JobList = () => {
   const navigate = useNavigate();
@@ -119,6 +120,15 @@ const JobList = () => {
   };
   const formatField = (value) => {
     return value ? value.charAt(0).toUpperCase() + value.slice(1).replace(/-/g, ' ') : 'N/A';
+  };
+
+  const formatPostedTime = (ts) => {
+    if (!ts) return '';
+    const d = new Date(ts);
+    const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+    const diff = Date.now() - d.getTime();
+    if (diff <= threeDaysMs) return `Posted ${formatDistanceToNow(d, { addSuffix: true })}`;
+    return `Posted ${format(d, 'EEE, MMM d, yyyy HH:mm')}`;
   };
   return (
     <motion.div
@@ -244,16 +254,7 @@ const JobList = () => {
                         <h2 className="text-xl font-bold text-slate-900 mb-1">{job.title}</h2>
                         <p className="text-slate-600 font-medium">{job.companyName}</p>
                         <p className="text-sm text-slate-500 mt-1">
-                          Posted on {new Date(job.createdAt).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })} at {new Date(job.createdAt).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true
-                          })}
+                          {formatPostedTime(job.createdAt)}
                         </p>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(job.status)}`}>

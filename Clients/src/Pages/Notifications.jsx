@@ -255,9 +255,10 @@ const Notifications = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                   whileHover={{ y: -2, scale: 1.01 }}
+                  onClick={notification.job ? () => navigate(`/jobseeker/dashboard/availableJobs?jobId=${notification.job._id}`) : undefined}
                   className={`bg-white rounded-xl shadow-lg border ${
                     notification.read ? 'border-gray-100' : 'border-green-200 bg-gradient-to-r from-green-50 to-teal-50'
-                  } p-6 hover:shadow-xl transition-all duration-300`}
+                  } p-6 hover:shadow-xl transition-all duration-300 ${notification.job ? 'cursor-pointer' : ''}`}
                 >
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1">

@@ -175,7 +175,7 @@ const Applications = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="flex flex-wrap gap-6 justify-center"
+            className="space-y-6"
           >
             {applications.map((app, index) => (
               <motion.div
@@ -183,7 +183,7 @@ const Applications = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * index, duration: 0.3 }}
-                className="border border-slate-200 rounded-2xl p-6 sm:p-8 max-w-4xl w-full sm:w-3/4 md:w-2/3 lg:w-1/2 bg-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
+                className="border border-slate-200 rounded-2xl p-6 sm:p-8 w-full bg-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="flex flex-col items-start mb-6">
                   <div className="mb-3 w-full flex items-start justify-between">
@@ -219,21 +219,14 @@ const Applications = () => {
                     <h3 className="text-sm font-semibold text-slate-900 mb-3">Applicant Skills</h3>
                     <div className="flex flex-wrap gap-2">
                       {Array.isArray(app.userId?.skills) && app.userId.skills.length > 0 ? (
-                        <>
-                          {app.userId.skills.slice(0, 5).map((skill, index) => (
-                            <span
-                              key={index}
-                              className="bg-emerald-50 text-emerald-700 text-xs font-medium px-3 py-1 rounded-lg border border-emerald-200"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                          {app.userId.skills.length > 5 && (
-                            <span className="bg-slate-50 text-slate-600 text-xs font-medium px-3 py-1 rounded-lg border border-slate-200">
-                              +{app.userId.skills.length - 5} more
-                            </span>
-                          )}
-                        </>
+                        app.userId.skills.map((skill, index) => (
+                          <span
+                            key={index}
+                            className="bg-emerald-50 text-emerald-700 text-xs font-medium px-3 py-1 rounded-lg border border-emerald-200"
+                          >
+                            {skill}
+                          </span>
+                        ))
                       ) : (
                         <span className="text-sm text-slate-500">No skills specified</span>
                       )}
@@ -241,19 +234,31 @@ const Applications = () => {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {app.resume && (
-                      <button
-                        onClick={() => {
-                          setSelectedResume(app.resume);
-                          setModalOpen(true);
-                        }}
-                        className="flex items-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all duration-200 border border-blue-200 hover:shadow-md"
-                      >
-                        <FaFileAlt className="text-blue-500 text-lg" />
-                        <div className="text-left">
-                          <span className="text-blue-700 font-medium block">View Resume</span>
-                          <span className="text-blue-600 text-sm">Click to preview</span>
-                        </div>
-                      </button>
+                      <>
+                        <button
+                          onClick={() => {
+                            setSelectedResume(app.resume);
+                            setModalOpen(true);
+                          }}
+                          className="flex items-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all duration-200 border border-blue-200 hover:shadow-md"
+                        >
+                          <FaFileAlt className="text-blue-500 text-lg" />
+                          <div className="text-left">
+                            <span className="text-blue-700 font-medium block">View Resume</span>
+                            <span className="text-blue-600 text-sm">Quick preview</span>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => navigate('/recruiter/dashboard/CVviewer', { state: { application: app } })}
+                          className="flex items-center gap-3 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-all duration-200 border border-green-200 hover:shadow-md"
+                        >
+                          <FaFileAlt className="text-green-500 text-lg" />
+                          <div className="text-left">
+                            <span className="text-green-700 font-medium block">View Full CV</span>
+                            <span className="text-green-600 text-sm">Structured details</span>
+                          </div>
+                        </button>
+                      </>
                     )}
                     {app.portfolioLink && (
                       <a
@@ -294,6 +299,16 @@ const Applications = () => {
                     <div className="bg-slate-50 rounded-lg p-4">
                       <h3 className="text-sm font-semibold text-slate-900 mb-2">Cover Letter</h3>
                       <p className="text-slate-600 text-sm leading-relaxed">{app.message}</p>
+                    </div>
+                  )}
+                  {app.resume && (
+                    <div className="bg-slate-50 rounded-lg p-4">
+                      <h3 className="text-sm font-semibold text-slate-900 mb-2">Resume Preview</h3>
+                      <iframe
+                        src={`https://carrier-path.onrender.com${app.resume}`}
+                        className="w-full h-64 border border-slate-200 rounded-lg"
+                        title="Resume Preview"
+                      />
                     </div>
                   )}
                 </div>
@@ -350,7 +365,7 @@ const Applications = () => {
               </div>
               <div className="p-6">
                 <iframe
-                  src={selectedResume}
+                  src={`https://carrier-path.onrender.com${selectedResume}`}
                   className="w-full h-[70vh] border border-slate-200 rounded-lg"
                   title="Resume Preview"
                 />
@@ -358,9 +373,11 @@ const Applications = () => {
             </div>
           </div>
         )}
+
       </div>
     </motion.div>
   );
 };
 
 export default Applications;
+

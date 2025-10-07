@@ -344,16 +344,7 @@ const ViewPost = () => {
                         <h2 className="text-xl font-bold text-gray-900 mb-1">{job.title || 'Untitled'}</h2>
                         <p className="text-gray-600 font-medium">{job.companyName || 'N/A'}</p>
                         <p className="text-sm text-gray-500 mt-1">
-                          Posted on {new Date(job.createdAt).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })} at {new Date(job.createdAt).toLocaleTimeString('en-US', {
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true
-                          })}
+                          {formatPostedTime(job.createdAt)}
                         </p>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(job.status)}`}>
