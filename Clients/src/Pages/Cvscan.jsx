@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import Navbar from '../Components/Navbar'
 import Footer from '../Components/Footer'
 import { FaFileUpload, FaSearch, FaCheckCircle, FaExclamationTriangle, FaStar, FaLightbulb, FaRocket, FaRedo } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const CvScan = () => {
   const [cvFile, setCvFile] = useState(null);
@@ -73,32 +74,90 @@ const CvScan = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
       <Navbar />
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-6">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mb-6 shadow-lg">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-teal-500 rounded-full mb-6 shadow-lg">
             <FaRocket className="text-white text-3xl" />
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent mb-4">
             CV Scanner
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
             Optimize your CV for tech industry jobs. Upload your resume and get instant feedback with AI-powered analysis.
           </p>
-        </div>
+
+          {/* Trust Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+            >
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">AI-Powered</div>
+              <div className="text-gray-600">Analysis</div>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+            >
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">Instant</div>
+              <div className="text-gray-600">Results</div>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+            >
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">Detailed</div>
+              <div className="text-gray-600">Feedback</div>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+            >
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">95%</div>
+              <div className="text-gray-600">Accuracy</div>
+            </motion.div>
+          </div>
+
+          {/* Trust Badges */}
+          <div className="flex flex-wrap justify-center items-center gap-6 mb-8">
+            <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-md border border-gray-100">
+              <span className="text-green-500">🤖</span>
+              <span className="text-sm font-medium text-gray-700">AI Technology</span>
+            </div>
+            <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-md border border-gray-100">
+              <span className="text-blue-500">⚡</span>
+              <span className="text-sm font-medium text-gray-700">Lightning Fast</span>
+            </div>
+            <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-md border border-gray-100">
+              <span className="text-purple-500">🎯</span>
+              <span className="text-sm font-medium text-gray-700">Job-Specific</span>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Main Form Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 mb-8"
+        >
           <div className="grid md:grid-cols-2 gap-8">
             {/* File Upload Section */}
-            <div className="space-y-4">
+            <motion.div whileHover={{ scale: 1.02 }} className="space-y-4">
               <div className="flex items-center space-x-3">
-                <FaFileUpload className="text-blue-500 text-xl" />
+                <FaFileUpload className="text-green-500 text-xl" />
                 <h3 className="text-xl font-semibold text-gray-900">Upload Your CV</h3>
               </div>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-400 transition-colors">
                 <input
                   type="file"
                   accept=".pdf,.docx"
@@ -122,32 +181,34 @@ const CvScan = () => {
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
 
             {/* Job Description Section */}
-            <div className="space-y-4">
+            <motion.div whileHover={{ scale: 1.02 }} className="space-y-4">
               <div className="flex items-center space-x-3">
-                <FaSearch className="text-indigo-500 text-xl" />
+                <FaSearch className="text-teal-500 text-xl" />
                 <h3 className="text-xl font-semibold text-gray-900">Job Description</h3>
               </div>
               <textarea
-                className="w-full h-48 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                className="w-full h-48 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none shadow-sm"
                 placeholder="Paste the job description here to analyze your CV against it..."
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
               />
-            </div>
+            </motion.div>
           </div>
 
           {/* Action Buttons */}
           <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-            <button
+            <motion.button
               onClick={handleScan}
               disabled={isLoading || !cvFile || !jobDescription}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className={`inline-flex items-center px-8 py-4 rounded-lg text-white font-semibold text-lg transition-all duration-200 ${
                 isLoading || !cvFile || !jobDescription
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
+                  : 'bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 shadow-lg hover:shadow-xl'
               }`}
             >
               {isLoading ? (
@@ -161,52 +222,75 @@ const CvScan = () => {
                   Scan My CV
                 </>
               )}
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
               onClick={handleRefresh}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className="inline-flex items-center px-8 py-4 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold text-lg transition-all duration-200 shadow-md hover:shadow-lg"
             >
               <FaRedo className="mr-3" />
               Refresh
-            </button>
+            </motion.button>
           </div>
 
           {/* Error Message */}
           {error && (
-            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center"
+            >
               <FaExclamationTriangle className="text-red-500 mr-3" />
               <p className="text-red-700">{error}</p>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
         {/* Results Section */}
         {result && (
-          <div className="bg-white rounded-2xl shadow-xl p-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="bg-white rounded-xl shadow-lg border border-gray-100 p-8"
+          >
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Scan Results</h2>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent mb-2">Scan Results</h2>
               <p className="text-gray-600">Here's how your CV performs against the job requirements</p>
             </div>
 
             {/* Scores Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl text-center">
-                <div className="text-3xl font-bold text-blue-600 mb-2">{result.keywordMatch}</div>
-                <div className="text-sm text-blue-800">Keyword Match</div>
-              </div>
-              <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl text-center">
-                <div className="text-3xl font-bold text-green-600 mb-2">{result.structureScore}</div>
-                <div className="text-sm text-green-800">Structure Score</div>
-              </div>
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl text-center">
-                <div className="text-3xl font-bold text-purple-600 mb-2">{result.readabilityScore}</div>
-                <div className="text-sm text-purple-800">Readability Score</div>
-              </div>
-              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl text-center">
-                <div className="text-3xl font-bold text-yellow-600 mb-2">{result.overallScore}</div>
-                <div className="text-sm text-yellow-800">Overall Score</div>
-              </div>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="bg-gradient-to-br from-green-50 to-teal-50 p-6 rounded-xl text-center border border-green-100 shadow-sm"
+              >
+                <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent mb-2">{result.keywordMatch}</div>
+                <div className="text-sm text-green-700 font-medium">Keyword Match</div>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="bg-gradient-to-br from-teal-50 to-green-50 p-6 rounded-xl text-center border border-teal-100 shadow-sm"
+              >
+                <div className="text-3xl font-bold bg-gradient-to-r from-teal-500 to-green-500 bg-clip-text text-transparent mb-2">{result.structureScore}</div>
+                <div className="text-sm text-teal-700 font-medium">Structure Score</div>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-xl text-center border border-emerald-100 shadow-sm"
+              >
+                <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text text-transparent mb-2">{result.readabilityScore}</div>
+                <div className="text-sm text-emerald-700 font-medium">Readability Score</div>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="bg-gradient-to-br from-teal-50 to-cyan-50 p-6 rounded-xl text-center border border-cyan-100 shadow-sm"
+              >
+                <div className="text-3xl font-bold bg-gradient-to-r from-teal-500 to-cyan-500 bg-clip-text text-transparent mb-2">{result.overallScore}</div>
+                <div className="text-sm text-cyan-700 font-medium">Overall Score</div>
+              </motion.div>
             </div>
 
             {/* Detailed Results */}
@@ -321,7 +405,7 @@ const CvScan = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
       <Footer />

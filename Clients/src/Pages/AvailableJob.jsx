@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import { debounce } from 'lodash';
 import { formatDistanceToNow, format } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Available = () => {
   const navigate = useNavigate();
@@ -214,50 +215,101 @@ const Available = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white px-4 sm:px-6 lg:px-8 pt-20 pb-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white px-4 sm:px-6 lg:px-8 pt-20 pb-6">
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Your Posted Jobs</h1>
-              <p className="text-gray-600">Cards match the public view; apply is disabled for your jobs.</p>
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent mb-4">
+            Find Your Dream Job
+          </h1>
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Discover thousands of opportunities from top companies. Your next career move starts here.
+          </p>
+
+          {/* Trust Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+            >
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">10K+</div>
+              <div className="text-gray-600">Active Jobs</div>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+            >
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">500+</div>
+              <div className="text-gray-600">Companies</div>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+            >
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">50K+</div>
+              <div className="text-gray-600">Job Seekers</div>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+            >
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">95%</div>
+              <div className="text-gray-600">Success Rate</div>
+            </motion.div>
+          </div>
+
+          {/* Trust Badges */}
+          <div className="flex flex-wrap justify-center items-center gap-6 mb-8">
+            <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-md border border-gray-100">
+              <span className="text-green-500">🔒</span>
+              <span className="text-sm font-medium text-gray-700">Secure & Verified</span>
             </div>
-            <div className="mt-4 sm:mt-0">
-              <button
-                onClick={() => navigate('/recruiter/dashboard/CreateJob')}
-                className="bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-200 flex items-center gap-2"
-              >
-                <span>+</span>
-                Create New Job
-              </button>
+            <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-md border border-gray-100">
+              <span className="text-blue-500">⭐</span>
+              <span className="text-sm font-medium text-gray-700">4.9/5 Rating</span>
+            </div>
+            <div className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-md border border-gray-100">
+              <span className="text-purple-500">🏆</span>
+              <span className="text-sm font-medium text-gray-700">Award Winning</span>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Search Jobs</label>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-8"
+        >
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Find Your Perfect Job</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <motion.div whileHover={{ scale: 1.02 }} className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Search Jobs</label>
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search by title, company, or tools..."
                   onChange={(e) => debouncedSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 shadow-sm"
                   aria-label="Search jobs"
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-400">🔍</span>
+                  <span className="text-gray-400 text-lg">🔍</span>
                 </div>
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Work Arrangement</label>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Work Arrangement</label>
               <select
                 name="jobType"
                 value={filters.jobType}
                 onChange={handleFilterChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 shadow-sm"
                 aria-label="Work arrangement"
               >
                 <option value="">All Work Types</option>
@@ -267,14 +319,14 @@ const Available = () => {
                   </option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Employment Type</label>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Employment Type</label>
               <select
                 name="employmentType"
                 value={filters.employmentType}
                 onChange={handleFilterChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 shadow-sm"
                 aria-label="Employment type"
               >
                 <option value="">All Employment Types</option>
@@ -284,63 +336,63 @@ const Available = () => {
                   </option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Location</label>
               <input
                 name="location"
                 value={filters.location}
                 onChange={handleFilterChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 shadow-sm"
                 placeholder="Enter city or country"
                 aria-label="Location"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Min Salary (Yearly)</label>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Min Salary (Yearly)</label>
               <input
                 name="minSalary"
                 type="number"
                 min="0"
                 value={filters.minSalary}
                 onChange={handleFilterChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 shadow-sm"
                 placeholder="Enter min salary"
                 aria-label="Minimum salary"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Max Salary (Yearly)</label>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Max Salary (Yearly)</label>
               <input
                 name="maxSalary"
                 type="number"
                 min="0"
                 value={filters.maxSalary}
                 onChange={handleFilterChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 shadow-sm"
                 placeholder="Enter max salary"
                 aria-label="Maximum salary"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Min Experience (Years)</label>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Min Experience (Years)</label>
               <input
                 name="experience"
                 type="number"
                 min="0"
                 value={filters.experience}
                 onChange={handleFilterChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 shadow-sm"
                 placeholder="Enter years"
                 aria-label="Minimum experience"
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.02 }} className="space-y-2">
+              <label className="block text-sm font-semibold text-gray-700">Sort By</label>
               <select
                 value={`${sortBy}:${sortOrder}`}
                 onChange={handleSortChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition duration-200 shadow-sm"
                 aria-label="Sort by"
               >
                 <option value="createdAt:desc">Newest First</option>
@@ -348,13 +400,19 @@ const Available = () => {
                 <option value="salary.yearly:desc">Salary (High to Low)</option>
                 <option value="salary.yearly:asc">Salary (Low to High)</option>
               </select>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
         {isLoading && (
-          <div className="flex justify-center items-center py-12" aria-label="Loading jobs">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex justify-center items-center py-12"
+            aria-label="Loading jobs"
+          >
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+            <span className="ml-3 text-gray-600">Finding perfect jobs for you...</span>
+          </motion.div>
         )}
         {!isLoading && jobs.length === 0 && (
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 sm:p-12 text-center">
@@ -371,135 +429,172 @@ const Available = () => {
           </div>
         )}
         {!isLoading && filteredJobs.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredJobs.map((job) => (
-              <div id={`job-${job._id}`} key={job._id} className={`bg-white rounded-lg shadow-sm border ${highlightJobId === job._id ? 'ring-2 ring-indigo-400' : 'border-gray-200'} hover:shadow-md transition-shadow duration-200 p-4 max-w-md`}>
-                <div className="flex flex-col items-start mb-2">
-                  <div className="mb-1">
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      {job.title}
-                      {isJobNew(job.createdAt) && (
-                        <span className="ml-2 bg-red-100 text-red-700 text-[10px] font-semibold px-1.5 py-0.5 rounded align-middle">NEW</span>
-                      )}
-                    </h2>
-                    <p className="text-sm text-gray-600">{job.companyName || 'N/A'}</p>
-                    <p className="text-xs text-gray-500">{formatPostedTime(job.createdAt)}</p>
-                    {job.companyImage && (
-                      <img
-                        src={`https://carrier-path.onrender.com${job.companyImage}`}
-                        alt={job.companyName || 'Company Logo'}
-                        className="w-16 h-16 object-contain mt-2"
-                      />
-                    )}
-                  </div>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(job.status)}`}>
-                    {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
-                  </span>
-                </div>
-                <div className="space-y-2 mb-2">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">Description</h3>
-                    <p className="text-gray-600 text-sm">{job.description}</p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-gray-600">
-                    <span className="text-gray-400 text-sm">📍</span>
-                    <span
-                      className="text-sm"
-                      title={`${job.location?.city || 'N/A'}, ${job.location?.state || 'N/A'}, ${job.location?.country || 'N/A'}`}
-                    >
-                      {job.location?.city || 'N/A'}, {job.location?.state || 'N/A'}, {job.location?.country || 'N/A'}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-gray-600">
-                    <span className="text-gray-400 text-sm">🏢</span>
-                    <span className="text-sm font-medium">Work Arrangement: </span>
-                    <span className="text-sm">{formatField(job.jobType)}</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-gray-600">
-                    <span className="text-gray-400 text-sm">💼</span>
-                    <span className="text-sm font-medium">Employment Type: </span>
-                    <span className="text-sm">{formatField(job.employmentType)}</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-gray-600">
-                    <span className="text-gray-400 text-sm">⏱️</span>
-                    <span className="text-sm font-medium">Experience: </span>
-                    <span className="text-sm">{job.yearsOfExperience !== undefined ? `${job.yearsOfExperience} years` : 'Not specified'}</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-gray-600">
-                    <span className="text-gray-400 text-sm">💰</span>
-                    <span className="text-sm font-medium">Salary: </span>
-                    <span className="text-sm">{formatSalary(job.salary)}</span>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 text-gray-600">
-                    <span className="text-gray-400 text-sm">🛠️</span>
-                    <span className="text-sm font-medium">Tools: </span>
-                    <div className="flex flex-wrap gap-1">
-                      {Array.isArray(job.tools) && job.tools.length > 0 ? (
-                        job.tools.map((tool, index) => (
-                          <span
-                            key={index}
-                            className="bg-blue-50 text-blue-700 text-xs font-medium px-1 py-0.5 rounded border border-blue-200"
-                          >
-                            {tool}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-sm">No tools specified</span>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="grid grid-cols-1 gap-6"
+          >
+            <AnimatePresence>
+              {filteredJobs.map((job, index) => (
+                <motion.div
+                  id={`job-${job._id}`}
+                  key={job._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                  className={`bg-white rounded-2xl shadow-lg border ${highlightJobId === job._id ? 'ring-2 ring-green-400' : 'border-gray-200'} hover:shadow-xl transition-all duration-300 hover:-translate-y-1 p-6 w-full`}
+                >
+                  <div className="flex flex-col items-start mb-4">
+                    <div className="mb-3 w-full">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h2 className="text-xl font-bold text-gray-900 mb-1">{job.title}</h2>
+                          <p className="text-gray-600 font-medium">{job.companyName || 'N/A'}</p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Posted on {new Date(job.createdAt).toLocaleDateString('en-US', {
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })} at {new Date(job.createdAt).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
+                          </p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${getStatusColor(job.status)}`}>
+                          {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+                        </span>
+                      </div>
+                      {job.companyImage && (
+                        <img src={`https://carrier-path.onrender.com${job.companyImage}`} alt={job.companyName} className="w-20 h-20 object-contain rounded-lg border border-gray-200 bg-gray-50 p-2" />
                       )}
                     </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900">Requirements</h3>
-                    <ul className="text-gray-600 text-sm space-y-1">
-                      {Array.isArray(job.requirements) && job.requirements.length > 0 ? (
-                        job.requirements.map((req, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <span className="text-gray-400 mt-1">•</span>
-                            <span>{req}</span>
-                          </li>
-                        ))
-                      ) : (
-                        <span className="text-gray-600">No requirements specified</span>
-                      )}
-                    </ul>
+                  <div className="space-y-4 mb-6">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2">Job Description</h3>
+                      <p className="text-gray-600 text-sm leading-relaxed">{job.description}</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <span className="text-green-500 text-sm">📍</span>
+                        <span className="text-sm">
+                          <span className="font-medium">Location:</span> {job.location?.city || 'N/A'}, {job.location?.state || 'N/A'}, {job.location?.country || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <span className="text-green-500 text-sm">🏢</span>
+                        <span className="text-sm">
+                          <span className="font-medium">Work Type:</span> {formatField(job.jobType)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <span className="text-green-500 text-sm">💼</span>
+                        <span className="text-sm">
+                          <span className="font-medium">Employment:</span> {formatField(job.employmentType)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <span className="text-green-500 text-sm">⏱️</span>
+                        <span className="text-sm">
+                          <span className="font-medium">Experience:</span> {job.yearsOfExperience !== undefined ? `${job.yearsOfExperience} years` : 'Not specified'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-600 col-span-1 sm:col-span-2">
+                        <span className="text-green-500 text-sm">💰</span>
+                        <span className="text-sm">
+                          <span className="font-medium">Salary:</span> {formatSalary(job.salary)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2">Required Tools & Technologies</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {Array.isArray(job.tools) && job.tools.length > 0 ? (
+                          job.tools.map((tool, index) => (
+                            <span key={index} className="bg-green-50 text-green-700 text-xs font-medium px-3 py-1 rounded-lg border border-green-200">
+                              {tool}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-sm text-gray-500 italic">No tools specified</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2">Job Requirements</h3>
+                      <ul className="text-gray-600 text-sm space-y-1">
+                        {Array.isArray(job.requirements) && job.requirements.length > 0 ? (
+                          job.requirements.map((req, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <span className="text-green-400 mt-1 text-xs">•</span>
+                              <span>{req}</span>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="text-gray-500 italic">No requirements specified</li>
+                        )}
+                      </ul>
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
-                  <button
-                    onClick={() => {
-                      setSelectedJob(job);
-                      setShowApplyModal(true);
-                    }}
-                    className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-2 px-3 rounded-md transition duration-200 flex items-center justify-center gap-2 text-sm"
-                  >
-                    <span>📩</span>
-                    Apply
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                  <div className="flex flex-wrap gap-3 justify-center pt-4 border-t border-gray-200">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        setSelectedJob(job);
+                        setShowApplyModal(true);
+                      }}
+                      className="w-auto bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white font-medium py-2 px-28 rounded-md transition duration-200 flex items-center justify-center gap-2 text-xs shadow-sm hover:shadow-md"
+                    >
+                      <span>🚀</span>
+                      Apply Now
+                    </motion.button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
         {totalPages > 1 && (
-          <div className="mt-6 flex justify-between items-center">
-            <button
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-8 flex justify-between items-center"
+          >
+            <motion.button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-xl hover:border-green-500 hover:text-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
             >
-              Previous
-            </button>
-            <span className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
+              ← Previous
+            </motion.button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-600">Page</span>
+              <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg font-semibold">
+                {currentPage}
+              </span>
+              <span className="text-sm font-medium text-gray-600">of {totalPages}</span>
+            </div>
+            <motion.button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-xl hover:border-green-500 hover:text-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
             >
-              Next
-            </button>
-          </div>
+              Next →
+            </motion.button>
+          </motion.div>
         )}
       </div>
 
@@ -583,13 +678,15 @@ const Available = () => {
                 >
                   Cancel
                 </button>
-                <button
+                <motion.button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-2.5 py-1 text-xs font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700 disabled:opacity-50"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-3 py-2 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-teal-500 rounded-lg hover:from-green-600 hover:to-teal-600 disabled:opacity-50 shadow-md"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit'}
-                </button>
+                  {isSubmitting ? 'Submitting...' : 'Submit Application'}
+                </motion.button>
               </div>
             </form>
           </div>
@@ -606,15 +703,17 @@ const Available = () => {
             </div>
             <h2 className="text-base font-semibold mb-1">Application Submitted!</h2>
             <p className="text-gray-600 mb-3 text-xs">Your application for {selectedJob?.title} has been submitted.</p>
-            <button
+            <motion.button
               onClick={() => {
                 setShowSuccessModal(false);
                 setSelectedJob(null);
               }}
-              className="px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-teal-500 rounded-lg hover:from-green-600 hover:to-teal-600 shadow-md"
             >
-              Close
-            </button>
+              Continue Exploring
+            </motion.button>
           </div>
         </div>
       )}

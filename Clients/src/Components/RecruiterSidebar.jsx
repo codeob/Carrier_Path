@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { LuChevronLeft, LuChevronRight } from 'react-icons/lu';
+import { motion } from 'framer-motion';
 
 const RecruiterSidebar = ({ isOpen, toggleSidebar }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -134,14 +135,19 @@ const RecruiterSidebar = ({ isOpen, toggleSidebar }) => {
   ];
 
   return (
-    <div
-      className={`fixed top-0 left-0 h-full bg-white text-gray-900 font-sans transition-all duration-300 ease-in-out z-50 shadow-lg border-r border-gray-200 flex flex-col
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+    <motion.div
+      initial={{ x: isOpen ? 0 : -320 }}
+      animate={{ x: isOpen ? 0 : -320 }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      className={`fixed top-0 left-0 h-full bg-white text-gray-900 font-sans z-50 shadow-2xl border-r border-gray-200 flex flex-col
         ${isCollapsed ? 'w-16' : 'w-64 md:w-56 lg:w-64'}
         lg:translate-x-0`}
     >
       {/* Logo/Branding */}
-      <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'} h-16 bg-gradient-to-b from-blue-600 to-blue-800 border-b border-blue-900 px-4`}>
+      <motion.div
+        whileHover={{ scale: 1.02 }}
+        className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'} h-16 bg-gradient-to-r from-green-600 via-green-700 to-teal-600 border-b border-teal-700 px-4 shadow-md`}
+      >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M12 2L2 7V17L12 22L22 17V7L12 2Z" fill="#FFFFFF" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           <path d="M2 7L12 12L22 7" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -153,43 +159,61 @@ const RecruiterSidebar = ({ isOpen, toggleSidebar }) => {
             <p className="text-xs text-white">Recruiter Portal</p>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Navigation Links */}
-      <nav className="flex flex-col gap-1 px-3 py-4 flex-1">
-        {menuItems.map((item) => (
-          <div key={item.path} className="relative group">
-            <Link
-              to={item.path}
-              onClick={() => handleMenuItemClick(item.onClick)}
-              className={`flex items-center gap-3 py-2 px-3 rounded-lg text-gray-900 text-base hover:bg-blue-100 hover:text-blue-600 transition-all duration-200
-                ${isCollapsed ? 'justify-center px-0' : ''}
-                ${isActive(item.path) ? 'bg-blue-100 text-blue-600' : ''}`}
-              title={isCollapsed ? item.label : ''}
-            >
-              {item.icon}
-              {!isCollapsed && <span className="truncate">{item.label}</span>}
-              {item.badge > 0 && (
-                <span className="absolute top-1 right-2 bg-red-600 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
-                  {item.badge}
-                </span>
-              )}
-            </Link>
+      <motion.nav
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.3 }}
+        className="flex flex-col gap-8 px-3 py-4 flex-1"
+      >
+        {menuItems.map((item, index) => (
+          <motion.div
+            key={item.path}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 * index, duration: 0.3 }}
+            className="relative group"
+          >
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Link
+                to={item.path}
+                onClick={() => handleMenuItemClick(item.onClick)}
+                className={`flex items-center gap-3 py-3 px-3 rounded-lg text-gray-900 text-base hover:bg-green-100 hover:text-green-600 transition-all duration-200 shadow-sm hover:shadow-md
+                  ${isCollapsed ? 'justify-center px-0' : ''}
+                  ${isActive(item.path) ? 'bg-green-100 text-green-600 shadow-md' : ''}`}
+                title={isCollapsed ? item.label : ''}
+              >
+                {item.icon}
+                {!isCollapsed && <span className="truncate">{item.label}</span>}
+                {item.badge > 0 && (
+                  <span className="absolute top-1 right-2 bg-red-600 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
+                    {item.badge}
+                  </span>
+                )}
+              </Link>
+            </motion.div>
             {isCollapsed && item.badge > 0 && (
               <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap">
                 {item.label} ({item.badge})
               </div>
             )}
-          </div>
+          </motion.div>
         ))}
-      </nav>
+      </motion.nav>
 
       {/* User Profile and Collapse/Expand Buttons */}
-      <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-4 py-3 bg-blue-50 border-t border-gray-200 h-14 mt-auto`}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.3 }}
+        className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} px-4 py-3 bg-green-50 border-t border-gray-200 h-14 mt-auto`}
+      >
         {!isCollapsed && (
           <>
             <div className="flex items-center">
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-medium mr-2">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-green-600 to-teal-600 text-white text-sm font-medium mr-2 shadow-md">
                 {getInitials(userProfile.firstName, userProfile.lastName, userProfile.name)}
               </div>
               <div className="flex-1 min-w-0">
@@ -203,31 +227,35 @@ const RecruiterSidebar = ({ isOpen, toggleSidebar }) => {
               </div>
             </div>
             <div className="flex gap-2">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={toggleCollapse}
-                className="text-blue-600 text-lg hover:text-blue-500 transition-colors duration-200"
+                className="text-green-600 text-lg hover:text-green-500 transition-colors duration-200"
                 aria-label="Collapse Sidebar"
               >
                 <LuChevronLeft />
-              </button>
+              </motion.button>
             </div>
           </>
         )}
         {isCollapsed && (
           <div className="flex items-center justify-center gap-2">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white text-sm font-medium">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-r from-green-600 to-teal-600 text-white text-sm font-medium shadow-md">
               {getInitials(userProfile.firstName, userProfile.lastName, userProfile.name)}
             </div>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={toggleCollapse}
-              className="text-blue-600 text-lg hover:text-blue-500 transition-colors duration-200"
+              className="text-green-600 text-lg hover:text-green-500 transition-colors duration-200"
               aria-label="Expand Sidebar"
             >
               <LuChevronRight />
-            </button>
+            </motion.button>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* Logout Button */}
       <div className="px-4 py-3 border-t border-gray-200 bg-white">
@@ -248,7 +276,7 @@ const RecruiterSidebar = ({ isOpen, toggleSidebar }) => {
           )}
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

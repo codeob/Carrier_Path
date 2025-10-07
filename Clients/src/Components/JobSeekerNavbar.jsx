@@ -10,6 +10,7 @@ import {
   FaSignOutAlt,
   FaBriefcase
 } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 const JobSeekerNavbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -150,16 +151,24 @@ const JobSeekerNavbar = () => {
   };
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full bg-white shadow-md z-50 border-b border-gray-200">
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-md shadow-lg shadow-black/10 z-50 border-b border-gray-100"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-600 rounded-lg">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="p-2 bg-gradient-to-r from-green-500 to-teal-500 rounded-lg shadow-md"
+                >
                   <FaBriefcase size={20} className="text-white" />
-                </div>
+                </motion.div>
                 <div className="hidden sm:block">
-                  <h1 className="text-lg font-bold text-gray-900">JobFinder</h1>
+                  <h1 className="text-lg font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">JobFinder</h1>
                   <p className="text-xs text-gray-500">Job Seeker Portal</p>
                 </div>
               </div>
@@ -168,97 +177,148 @@ const JobSeekerNavbar = () => {
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.path} className="relative">
+                  <motion.div
+                    key={item.path}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="relative"
+                  >
                     <Link
                       to={item.path}
                       className={`flex items-center px-3 py-2 rounded-md text-sm font-medium ${
                         isActive(item.path)
-                          ? 'bg-blue-600 text-white'
+                          ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-md'
                           : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                       } transition duration-200`}
                     >
                       <Icon size={16} className="mr-2" />
                       {item.label}
                       {item.badge > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
+                        <motion.span
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center shadow-lg"
+                        >
                           {item.badge}
-                        </span>
+                        </motion.span>
                       )}
                     </Link>
-                  </div>
+                  </motion.div>
                 );
               })}
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md"
+                >
                   {getInitials(userProfile.name)}
-                </div>
+                </motion.div>
                 <span className="text-sm text-gray-900">{getFullName(userProfile.name)}</span>
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleLogout}
                   className="flex items-center px-3 py-2 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-md transition duration-200"
                 >
                   <FaSignOutAlt size={16} className="mr-2" />
                   Logout
-                </button>
+                </motion.button>
               </div>
             </div>
             <div className="md:hidden">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={toggleMobileMenu}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-200"
+                aria-label="Toggle menu"
+                aria-expanded={isMobileMenuOpen}
               >
-                {isMobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-              </button>
+                <motion.div
+                  animate={{ rotate: isMobileMenuOpen ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {isMobileMenuOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+                </motion.div>
+              </motion.button>
             </div>
           </div>
         </div>
-        {isMobile && isMobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200">
-            <div className="px-4 py-6 space-y-2">
-              {menuItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div key={item.path} className="relative">
-                    <Link
-                      to={item.path}
-                      onClick={closeMobileMenu}
-                      className={`flex items-center px-4 py-3 rounded-lg text-sm font-medium ${
-                        isActive(item.path)
-                          ? 'bg-blue-600 text-white'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                      } transition duration-200`}
+        <AnimatePresence>
+          {isMobile && isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="md:hidden bg-white/95 backdrop-blur-md border-t border-gray-200"
+            >
+              <div className="px-4 py-6 space-y-2">
+                {menuItems.map((item, index) => {
+                  const Icon = item.icon;
+                  return (
+                    <motion.div
+                      key={item.path}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="relative"
                     >
-                      <Icon size={18} className="mr-3" />
-                      {item.label}
-                      {item.badge > 0 && (
-                        <span className="absolute top-2 right-4 bg-red-600 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Link>
+                      <Link
+                        to={item.path}
+                        onClick={closeMobileMenu}
+                        className={`flex items-center px-4 py-3 rounded-lg text-sm font-medium ${
+                          isActive(item.path)
+                            ? 'bg-gradient-to-r from-green-500 to-teal-500 text-white shadow-md'
+                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        } transition duration-200`}
+                      >
+                        <Icon size={18} className="mr-3" />
+                        {item.label}
+                        {item.badge > 0 && (
+                          <motion.span
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute top-2 right-4 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-semibold rounded-full w-5 h-5 flex items-center justify-center shadow-lg"
+                          >
+                            {item.badge}
+                          </motion.span>
+                        )}
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: menuItems.length * 0.1 }}
+                  className="flex items-center px-4 py-3"
+                >
+                  <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3 shadow-md">
+                    {getInitials(userProfile.name)}
                   </div>
-                );
-              })}
-              <div className="flex items-center px-4 py-3">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-3">
-                  {getInitials(userProfile.name)}
-                </div>
-                <span className="text-sm text-gray-900">{getFullName(userProfile.name)}</span>
+                  <span className="text-sm text-gray-900">{getFullName(userProfile.name)}</span>
+                </motion.div>
+                <motion.button
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: (menuItems.length + 1) * 0.1 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    handleLogout();
+                    closeMobileMenu();
+                  }}
+                  className="w-full flex items-center px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition duration-200"
+                >
+                  <FaSignOutAlt size={18} className="mr-3" />
+                  Logout
+                </motion.button>
               </div>
-              <button
-                onClick={() => {
-                  handleLogout();
-                  closeMobileMenu();
-                }}
-                className="w-full flex items-center px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg transition duration-200"
-              >
-                <FaSignOutAlt size={18} className="mr-3" />
-                Logout
-              </button>
-            </div>
-          </div>
-        )}
-      </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.header>
     </>
   );
 };
