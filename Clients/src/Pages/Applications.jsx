@@ -234,31 +234,19 @@ const Applications = () => {
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {app.resume && (
-                      <>
-                        <button
-                          onClick={() => {
-                            setSelectedResume(app.resume);
-                            setModalOpen(true);
-                          }}
-                          className="flex items-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all duration-200 border border-blue-200 hover:shadow-md"
-                        >
-                          <FaFileAlt className="text-blue-500 text-lg" />
-                          <div className="text-left">
-                            <span className="text-blue-700 font-medium block">View Resume</span>
-                            <span className="text-blue-600 text-sm">Quick preview</span>
-                          </div>
-                        </button>
-                        <button
-                          onClick={() => navigate('/recruiter/dashboard/CVviewer', { state: { application: app } })}
-                          className="flex items-center gap-3 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-all duration-200 border border-green-200 hover:shadow-md"
-                        >
-                          <FaFileAlt className="text-green-500 text-lg" />
-                          <div className="text-left">
-                            <span className="text-green-700 font-medium block">View Full CV</span>
-                            <span className="text-green-600 text-sm">Structured details</span>
-                          </div>
-                        </button>
-                      </>
+                      <button
+                        onClick={() => {
+                          setSelectedResume(app.resume);
+                          setModalOpen(true);
+                        }}
+                        className="flex items-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all duration-200 border border-blue-200 hover:shadow-md"
+                      >
+                        <FaFileAlt className="text-blue-500 text-lg" />
+                        <div className="text-left">
+                          <span className="text-blue-700 font-medium block">View Resume</span>
+                          <span className="text-blue-600 text-sm">Quick preview</span>
+                        </div>
+                      </button>
                     )}
                     {app.portfolioLink && (
                       <a
