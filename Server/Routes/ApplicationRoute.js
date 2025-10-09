@@ -3,7 +3,7 @@ const express = require('express');
 // Create an instance of express Router
 const router = express.Router();
 // Import application controller functions
-const { createApplication, getApplications, updateApplication, deleteApplication, clearAllApplications, markApplicationsAsRead } = require('../Controllers/ApplicationController');
+const { createApplication, getApplications, updateApplication, deleteApplication, clearAllApplications, getUnreadCounts, markApplicationsAsRead } = require('../Controllers/ApplicationController');
 // Import authentication middleware
 const authMiddleware = require('../middleware/authMiddleware');
 // Import multer for file uploads
@@ -32,6 +32,8 @@ const upload = multer({
 router.post('/', authMiddleware(['user']), upload.single('resume'), createApplication);
 // Protected route to get applications, restricted to recruiters
 router.get('/', authMiddleware(['recruiter']), getApplications);
+// Protected route to get unread counts, restricted to recruiters
+router.get('/unread-counts', authMiddleware(['recruiter']), getUnreadCounts);
 // Protected route to update an application, restricted to recruiters
 router.put('/:id', authMiddleware(['recruiter']), updateApplication);
 // Protected route to delete all applications for recruiter's jobs (must come before /:id)

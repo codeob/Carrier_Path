@@ -8,7 +8,7 @@ export default function CVviewer() {
   const [application, setApplication] = useState(null);
 
   useEffect(() => {
-    if (location.state?.application) {
+    if(location.state?.application) {
       setApplication(location.state.application);
     } else {
       navigate('/recruiter/dashboard/applications');

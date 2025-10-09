@@ -103,6 +103,9 @@ exports.createApplication = async (req, res) => {
           const autoRejectMax = 61;
           const score = application.ats.overallScore || 0;
           application.standout = score >= qualifiedMin;
+          if (application.standout) {
+            application.standoutRead = false;
+          }
 
           // Congrats for high score
           if (score >= qualifiedMin) {
@@ -112,17 +115,25 @@ exports.createApplication = async (req, res) => {
                 recipient: application.userId,
                 recipientModel: 'JobSeeker',
                 job: job._id,
-                content: `🎉🚀 Congratulations! Your CV scored ${score}% for ${job.title} at ${job.companyName}. Your application stands out and has been prioritized for recruiter review.`,
+                content: `Your application stands out! Please patiently wait for the recruiter to go through it.`,
                 sentAt: new Date(),
               });
+              // Remove any existing "removed" notifications for this user and job
+              await Message.deleteMany({
+                recipient: application.userId,
+                recipientModel: 'JobSeeker',
+                job: job._id,
+                content: { $regex: /was removed/, $options: 'i' },
+              });
             } catch (e) {
-              console.error('Failed to send congrats message:', e);
+              console.error('Failed to send congrats message or delete removed notifications:', e);
             }
           }
 
           // Auto-reject for low score
           if (score < autoRejectMax) {
             application.status = 'rejected';
+            application.statusRead = false;
             try {
               const missingKw = Array.isArray(result?.missingKeywords) ? result.missingKeywords.slice(0, 5) : [];
               const tips = missingKw.length
@@ -218,6 +229,9 @@ exports.updateApplication = async (req, res) => {
 
     const prevStatus = application.status;
     application.status = normalizedStatus;
+    if (normalizedStatus === 'accepted' || normalizedStatus === 'rejected') {
+      application.statusRead = false;
+    }
     await application.save();
 
     const recruiterId = requesterId;
@@ -292,26 +306,7 @@ exports.deleteApplication = async (req, res) => {
       }
     }
 
-    const job = application.jobId;
-    const recruiter = await Recruiter.findById(job.postedBy).select('name company');
-    const recipient = application.userId;
-
     await Application.deleteOne({ _id: id });
-
-    // Notify jobseeker that their application was removed by recruiter
-    try {
-      await Message.create({
-        sender: recruiter?._id || job.postedBy,
-        senderModel: 'Recruiter',
-        recipient,
-        recipientModel: 'JobSeeker',
-        job: job._id,
-        content: `Your application for ${job.title} was removed by ${recruiter?.name || 'the recruiter'}${recruiter?.company ? ` at ${recruiter.company}` : ''}.`,
-        sentAt: new Date(),
-      });
-    } catch (notifyDelErr) {
-      console.error('Failed to send delete notification:', notifyDelErr);
-    }
 
     res.json({ message: 'Application deleted successfully' });
   } catch (error) {
@@ -345,10 +340,71 @@ exports.clearAllApplications = async (req, res) => {
   }
 };
 
+// Get unread counts for notifications
+exports.getUnreadCounts = async (req, res) => {
+  try {
+    const requesterId = req.recruiter?.recruiterId || req.user?.id;
+    if (!requesterId) {
+      return res.status(401).json({ message: 'Unauthorized: missing requester identity' });
+    }
+
+    const jobs = await Job.find({ postedBy: requesterId }).select('_id');
+    const jobIds = jobs.map(job => job._id);
+
+    if (jobIds.length === 0) {
+      return res.json({ applications: 0, analytics: 0 });
+    }
+
+    // Count for Applications: pending applications
+    const applicationsCount = await Application.countDocuments({
+      jobId: { $in: jobIds },
+      status: 'pending'
+    });
+
+    // Count for Analytics: accepted/rejected not read
+    const analyticsCount = await Application.countDocuments({
+      jobId: { $in: jobIds },
+      status: { $in: ['accepted', 'rejected'] },
+      statusRead: false
+    });
+
+    res.json({ applications: applicationsCount, analytics: analyticsCount });
+  } catch (error) {
+    console.error('Error fetching unread counts:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 // Mark applications as read (placeholder; implement if schema has 'read' flag)
 exports.markApplicationsAsRead = async (req, res) => {
   try {
-    res.json({ message: 'Mark as read processed' });
+    const requesterId = req.recruiter?.recruiterId || req.user?.id;
+    if (!requesterId) {
+      return res.status(401).json({ message: 'Unauthorized: missing requester identity' });
+    }
+
+    const jobs = await Job.find({ postedBy: requesterId }).select('_id');
+    const jobIds = jobs.map(job => job._id);
+
+    if (jobIds.length === 0) {
+      return res.json({ message: 'No applications to mark as read' });
+    }
+
+    // Mark standoutRead = true for standout applications
+    await Application.updateMany({
+      jobId: { $in: jobIds },
+      standout: true,
+      standoutRead: false
+    }, { standoutRead: true });
+
+    // Mark statusRead = true for accepted/rejected applications
+    await Application.updateMany({
+      jobId: { $in: jobIds },
+      status: { $in: ['accepted', 'rejected'] },
+      statusRead: false
+    }, { statusRead: true });
+
+    res.json({ message: 'Applications marked as read' });
   } catch (error) {
     console.error('Error marking applications as read:', error);
     res.status(500).json({ message: 'Server error' });

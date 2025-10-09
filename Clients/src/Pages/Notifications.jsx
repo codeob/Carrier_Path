@@ -255,24 +255,28 @@ const Notifications = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                   whileHover={{ y: -2, scale: 1.01 }}
-                  onClick={notification.job ? () => navigate(`/jobseeker/dashboard/availableJobs?jobId=${notification.job._id}`) : undefined}
+                  onClick={notification.job && notification.content.toLowerCase().includes('new job posted') ? () => navigate(`/jobseeker/dashboard/availableJobs?jobId=${notification.job._id}`) : undefined}
                   className={`bg-white rounded-xl shadow-lg border ${
                     notification.read ? 'border-gray-100' : 'border-green-200 bg-gradient-to-r from-green-50 to-teal-50'
-                  } p-6 hover:shadow-xl transition-all duration-300 ${notification.job ? 'cursor-pointer' : ''}`}
+                  } p-6 hover:shadow-xl transition-all duration-300 ${notification.job && notification.content.toLowerCase().includes('new job posted') ? 'cursor-pointer' : ''}`}
                 >
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1">
                     <p className="text-gray-900 font-medium">{notification.content || 'No content'}</p>
                     {notification.job && (
                       <div className="flex items-center gap-2 text-sm">
-                        <button
-                          onClick={() => navigate(`/jobseeker/dashboard/availableJobs?jobId=${notification.job._id}`)}
-                          className="text-indigo-600 hover:underline"
-                          title={`${notification.job?.location?.city || 'N/A'}, ${notification.job?.location?.state || 'N/A'}, ${notification.job?.location?.country || 'N/A'}`}
-                        >
-                          Job: {notification.job.title || 'Unknown'}
-                        </button>
-                        {isJobNew(notification.job?.createdAt) && (
+                        {notification.content.toLowerCase().includes('new job posted') ? (
+                          <button
+                            onClick={() => navigate(`/jobseeker/dashboard/availableJobs?jobId=${notification.job._id}`)}
+                            className="text-indigo-600 hover:underline"
+                            title={`${notification.job?.location?.city || 'N/A'}, ${notification.job?.location?.state || 'N/A'}, ${notification.job?.location?.country || 'N/A'}`}
+                          >
+                            Job: {notification.job.title || 'Unknown'}
+                          </button>
+                        ) : (
+                          <span className="text-gray-600">Job: {notification.job.title || 'Unknown'}</span>
+                        )}
+                        {notification.content.toLowerCase().includes('new job posted') && (
                           <span className="bg-red-100 text-red-700 text-[10px] font-semibold px-1.5 py-0.5 rounded">NEW</span>
                         )}
                       </div>

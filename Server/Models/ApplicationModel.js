@@ -54,6 +54,14 @@ const applicationSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  standoutRead: {
+    type: Boolean,
+    default: false,
+  },
+  statusRead: {
+    type: Boolean,
+    default: false,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

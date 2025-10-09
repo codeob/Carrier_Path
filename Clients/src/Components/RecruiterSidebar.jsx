@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { LuChevronLeft, LuChevronRight } from 'react-icons/lu';
@@ -8,6 +8,7 @@ const RecruiterSidebar = ({ isOpen, toggleSidebar }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [userProfile, setUserProfile] = useState({ firstName: '', lastName: '', name: '', email: '', company: '' });
   const [unreadApplicationCount, setUnreadApplicationCount] = useState(0);
+  const [unreadAnalyticsCount, setUnreadAnalyticsCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
   const BASE_URL = 'https://carrier-path.onrender.com';
@@ -40,11 +41,11 @@ const RecruiterSidebar = ({ isOpen, toggleSidebar }) => {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
-        const applicationResponse = await axios.get(`${BASE_URL}/api/applications`, {
+        const response = await axios.get(`${BASE_URL}/api/applications/unread-counts`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
-        const pendingCount = applicationResponse.data.filter(app => app.status === 'pending').length;
-        setUnreadApplicationCount(pendingCount);
+        setUnreadApplicationCount(response.data.applications);
+        setUnreadAnalyticsCount(response.data.analytics);
       } catch (error) {
         console.error('Error fetching unread counts:', error.response?.data || error.message);
       }
@@ -81,7 +82,8 @@ const RecruiterSidebar = ({ isOpen, toggleSidebar }) => {
       await axios.post(`${BASE_URL}/api/applications/mark-as-read`, {}, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      setUnreadApplicationCount(0);
+      // Fetch updated counts after marking as read
+      fetchUnreadCounts();
     } catch (error) {
       console.error('Error marking applications as read:', error.response?.data || error.message);
     }
@@ -126,13 +128,13 @@ const RecruiterSidebar = ({ isOpen, toggleSidebar }) => {
 
   const isActive = (path) => location.pathname === path;
 
-  const menuItems = [
+  const menuItems = useMemo(() => [
     { path: '/recruiter/dashboard/viewPost', label: 'View Posts', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4.5C7 4.5 2.73 7.61 1 12C2.73 16.39 7 19.5 12 19.5C17 19.5 21.27 16.39 23 12C21.27 7.61 17 4.5 12 4.5ZM12 17C9.24 17 7 14.76 7 12C7 9.24 9.24 7 12 7C14.76 7 17 9.24 17 12C17 14.76 14.76 17 12 17ZM12 9C10.34 9 9 10.34 9 12C9 13.66 10.34 15 12 15C13.66 15 15 13.66 15 12C15 10.34 13.66 9 12 9Z" fill="currentColor"/></svg> },
     { path: '/recruiter/dashboard/CreateJobs', label: 'Create Job', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16 13H13V16C13 16.55 12.55 17 12 17C11.45 17 11 16.55 11 16V13H8C7.45 13 7 12.55 7 12C7 11.45 7.45 11 8 11H11V8C11 7.45 11.45 7 12 7C12.55 7 13 7.45 13 8V11H16C16.55 11 17 11.45 17 12C17 12.55 16.55 13 16 13Z" fill="currentColor"/></svg> },
     { path: '/recruiter/dashboard/JobList', label: 'Job Listings', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6H12L10 4H4C2.89 4 2 4.89 2 6V18C2 19.11 2.89 20 4 20H20C21.11 20 22 19.11 22 18V6C22 4.89 21.11 4 20 4L20 6ZM12 18H4V8H12V18ZM14 6V18H20V6H14Z" fill="currentColor"/></svg> },
-    { path: '/recruiter/dashboard/Applications', label: 'Applications', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 9H18.5L13 3.5V9ZM6 2H14L20 8V20C20 21.1 19.1 22 18 22H6C4.9 22 4 21.1 4 20V4C4 2.9 4.9 2 6 2Z" fill="currentColor"/></svg>, badge: unreadApplicationCount, onClick: markApplicationsAsRead },
-    { path: '/recruiter/dashboard/Analytics', label: 'Analytics', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 13H9V21H3V13ZM11 3H17V21H11V3ZM19 7H15V21H19V7Z" fill="currentColor"/></svg> },
-  ];
+    { path: '/recruiter/dashboard/Applications', label: 'Applications', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 9H18.5L13 3.5V9ZM6 2H14L20 8V20C20 21.1 19.1 22 18 22H6C4.9 22 4 21.1 4 20V4C4 2.9 4.9 2 6 2Z" fill="currentColor"/></svg>, onClick: markApplicationsAsRead, badge: unreadApplicationCount },
+    { path: '/recruiter/dashboard/Analytics', label: 'Analytics', icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 13H9V21H3V13ZM11 3H17V21H11V3ZM19 7H15V21H19V7Z" fill="currentColor"/></svg>, badge: unreadAnalyticsCount },
+  ], [unreadApplicationCount, unreadAnalyticsCount]);
 
   return (
     <motion.div
